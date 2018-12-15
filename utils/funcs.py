@@ -1,36 +1,34 @@
 import torch 
 import numpy as np
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
-def accuracy(ys, ts):
-    """Calculate accuracy of model given prediction and true values"""
+def plot_tSNE(idx2vec, word2idx, words, filename, use_cuda):    
+    # initialize tSNE model
+    model = TSNE(n_components=2, perplexity=10, n_iter=5000, method='exact', verbose=1, learning_rate=5.0)
+
+    # get unique words
+    # words = sorted(preprocess_test.wc, key=preprocess_test.wc.get, reverse=True)
+    # words_array = np.array(words)
     
-    # making a one-hot encoded vector of correct (1) and incorrect (0) predictions
-    correct_prediction = torch.eq(torch.max(ys, 1)[1], ts)
-    
-    # averaging the one-hot encoded vector
-    return torch.mean(correct_prediction.float())
+    # transform
+    X = np.array([idx2vec[word2idx[word]] for word in words])
+    X_fit=model.fit_transform(X)
 
-def create_negative_table(frequencies, table_length, alpha=0.75):
-    """Function for negative sampling"""
+    target_ids = range(len(words))
 
-    # sum frequencies
-    sums = np.sum(np.power(frequencies.values(), alpha))
-    
-    # init table to put values in
-    neg_table = np.zeros(table_length, dtype=np.int32)
+    x=X_fit[:,0]
+    y=X_fit[:,1]
 
-    start_index = 0
+    # set colors
+    num_colors = len(words)
+    colors = cm.rainbow(np.linspace(0, 1, num_colors))
 
-    for idx, freq in frequencies.items():
-        # calculate power of frequency (P(w_i)^alpha)
-        power_freq = np.power(freq, alpha)
-        
-        # the number of times a word’s index appears in the table is given by 
-        end_index = start_index + int(power_freq/sums * table_length) + 1
-
-        # fill this table with the index of each word in the vocabulary multiple times
-        neg_table[start_index:end_index] = idx
-
-        start_index = end_index
-
-    return neg_table
+    # plot
+    plt.figure(figsize=(10,10))
+    for i, c, label in zip(target_ids, colors, words):
+        plt.scatter(x[i], y[i], c=c, label=label)
+    plt.legend()
+    plt.savefig(filename)
+    plt.show()

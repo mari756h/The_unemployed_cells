@@ -3,7 +3,8 @@
 import numpy as np
 from utils.data_process import Preprocess
 from model.skipgram import SkipGram
-import urllib.request
+from test_network import test_net
+from utils.funcs import plot_tSNE
 
 import torch
 from torch.autograd import Variable
@@ -18,7 +19,6 @@ from bokeh.io import show, export_png
 import datetime
 import os
 import argparse
-import pickle
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -36,8 +36,10 @@ def parse_args():
     parser.add_argument('--subsampling', type=bool, default=False)
     parser.add_argument('--logevery', type=int, default=10000)
     parser.add_argument('--negatives', type=int, default=5)
-    parser.add_argument('--optimizer', type=str, default='Adam', choices=['Adam', 'SGD'])
+    parser.add_argument('--optimizer', type=str, default='Adam', choices=['Adam', 'SGD'], help="implemented optimizers")
+    parser.add_argument('--momentum', type=float, default=0, help="used if optimizer is SGD")
     parser.add_argument('--testnetwork', action='store_true')
+    parser.add_argument('--tSNE', action='store_true')
 
     return parser.parse_args()
 
@@ -61,13 +63,6 @@ preprocess_valid = Preprocess(window_size=args.window, unk=unk)
 preprocess_valid.build(file=f, subsampling=args.subsampling, word2idx=preprocess_train.word2idx, direction=args.direction)
 f.close()
 
-if args.testnetwork:
-    print("Test data")
-    f = open(args.datadir + '/' + args.testdata, 'r')
-    preprocess_test = Preprocess(window_size=args.window, unk=unk)
-    preprocess_test.build(file=f, subsampling=args.subsampling, word2idx=preprocess_train.word2idx, direction=args.direction)
-    f.close()
-
 print("NETWORK SETUP")
 net = SkipGram(embedding_dim=args.embeddingdim, vocab_size=preprocess_train.vocab_size + 1, n_negs=args.negatives)
 print(net)
@@ -75,7 +70,7 @@ print(net)
 if args.optimizer == 'Adam':
     optimizer = optim.Adam(net.parameters(), lr=args.lr)
 elif args.optimizer == 'SGD':
-    optimizer = optim.SGD(net.parameters(), lr=args.lr)
+    optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum)
 
 criterion = nn.BCEWithLogitsLoss()
 
@@ -152,7 +147,8 @@ for epoch in range(args.epochs):
     print("Epoch {0}, valid loss: {1}, valid perplexity: {2}\n".format(epoch+1, valid_loss[-1], np.exp(valid_loss[-1])))
 
     # save model
-    torch.save({'model_state_dict': net.state_dict(), 'optimizer_state_dict': optimizer.state_dict(), 'epoch': epoch+1, 'train_loss': train_loss, 'valid_loss': valid_loss}, "{0}/{1}/window_{5}_epoch_{2}_{3}_{4}_model.pkl".format(args.datadir, date, epoch+1, args.direction, args.optimizer, args.window))
+    model_name = "{0}/{1}/window_{5}_epoch_{2}_{3}_{4}_lr{6}_emb{7}_model.pkl".format(args.datadir, date, epoch+1, args.direction, args.optimizer, args.window, args.lr, args.embeddingdim)
+    torch.save({'model_state_dict': net.state_dict(), 'optimizer_state_dict': optimizer.state_dict(), 'epoch': epoch+1, 'train_loss': train_loss, 'valid_loss': valid_loss}, model_name)
 
 # plot
 runned_epochs = list(range(0, len(train_loss)))
@@ -172,3 +168,33 @@ output_file(args.datadir + '/' + date + '/{0}_{1}_{2}_training_losses.html'.form
 save(p)
 
 print("donenenene :D")
+
+if args.testnetwork:
+    print("EVALUATING ON TEST SET")
+    print("Loading test data..")
+    f = open(args.datadir + '/' + args.testdata, 'r')
+    preprocess_test = Preprocess(window_size=args.window, unk=unk)
+    preprocess_test.build(file=f, subsampling=args.subsampling, word2idx=preprocess_train.word2idx, direction=args.direction)
+    f.close()
+
+    test_loader = data_utils.DataLoader(preprocess_test.data, batch_size=args.batchsize, shuffle=True, num_workers=4)
+
+    print("Evaluating..")
+    test_loss = test_net(dataloader=test_loader, model=net, criterion=criterion, use_cuda=use_cuda)
+    print("Test loss: {:.3f}, Test perplexity: {:.3f}".format(test_loss, np.exp(test_loss)))
+
+    if args.tSNE:
+        # get words / amino acids that are unique
+        words = sorted(preprocess_test.wc, key=preprocess_test.wc.get, reverse=True)
+        words_array = np.array(words)
+
+        # get learned embeddings
+        if use_cuda:
+            idx2vec = net.in_embedding.weight.data.numpy()
+        else:
+            idx2vec = net.in_embedding.weight.data.cpu().numpy()
+
+        # plot it!
+        model_split = model_name.split('_')
+        plot_name = "_".join(model_split[:-1]) + '_tSNE.png'
+        plot_tSNE(idx2vec=idx2vec, word2idx=preprocess_test.word2idx, words=words_array, filename=plot_name, use_cuda=use_cuda)

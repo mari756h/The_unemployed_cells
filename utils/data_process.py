@@ -44,7 +44,7 @@ class Preprocess:
         elif direction == 'forward':
             return center, right
                                 
-    def build(self, file, direction, subsampling=True, threshold=1e-5, word2idx=None):
+    def build(self, file, direction, subsampling=True, threshold=1e-5, word2idx=None, convert=True):
         print("Creating vocab")
         
         self.sentences = []
@@ -70,8 +70,8 @@ class Preprocess:
         
         if subsampling:
             self.subsampling(self.wc, threshold)
-        
-        self.convert(subsampling, direction)
+        if convert:
+            self.convert(subsampling, direction)
         
     def subsampling(self, counts, threshold):
         
@@ -100,7 +100,7 @@ class Preprocess:
 
         print("Done")
 
-if __name__ == 'main':
+if __name__ == '__main__':
     args = parse_args()
 
     preprocessed_dir = '{2}/preprocessed/{0}_window_{1}'.format(args.window, args.direction, args.datadir)

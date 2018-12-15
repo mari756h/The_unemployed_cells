@@ -33,5 +33,12 @@ class SkipGram(nn.Module):
         # neg_loss = torch.bmm(negative_vectors, center_vectors).squeeze().sigmoid().log().view(-1, context_size, self.n_negs).sum(2).mean(1)
 
         
-        predictions = torch.bmm(context_vectors, center_vectors).squeeze().softmax(dim=1).log()
+        predictions = torch.bmm(context_vectors, center_vectors)
+        predictions = predictions.squeeze()
+        try:
+                predictions = predictions.softmax(dim=1)
+        except:
+                predictions = predictions.softmax(dim=-1)
+        predictions = predictions.log().view(-1, context_size)
+        
         return predictions
