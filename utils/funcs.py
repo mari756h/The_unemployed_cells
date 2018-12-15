@@ -4,13 +4,12 @@ from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
-def plot_tSNE(idx2vec, word2idx, words, filename, use_cuda):    
+def plot_tSNE(idx2vec, word2idx, words, filename):    
     """
     idx2vec: embeddings
     word2idx: convert words to their indices
     words: unique words / amino acids
     filename: destination + name of file
-    use_cuda: to use or not to use GPU
     """
 
     # initialize tSNE model
