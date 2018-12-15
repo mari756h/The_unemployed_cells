@@ -5,6 +5,14 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 def plot_tSNE(idx2vec, word2idx, words, filename, use_cuda):    
+    """
+    idx2vec: embeddings
+    word2idx: convert words to their indices
+    words: unique words / amino acids
+    filename: destination + name of file
+    use_cuda: to use or not to use GPU
+    """
+
     # initialize tSNE model
     model = TSNE(n_components=2, perplexity=10, n_iter=5000, method='exact', verbose=1, learning_rate=5.0)
 
