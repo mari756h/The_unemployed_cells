@@ -36,6 +36,6 @@ def plot_tSNE(idx2vec, word2idx, words, filename):
     plt.figure(figsize=(10,10))
     for i, c, label in zip(target_ids, colors, words):
         plt.scatter(x[i], y[i], c=c, label=label)
-    plt.legend()
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.savefig(filename)
     plt.show()
