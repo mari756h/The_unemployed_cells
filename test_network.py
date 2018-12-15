@@ -50,15 +50,15 @@ def test_net(dataloader, model, criterion, use_cuda):
 if __name__ == '__main__':
     args = parse_args()
 
-    model_name = 'data/window_2_epoch_1_both_SGD_lr0.0001_emb2_model.pkl' # args.model
+    model_name = args.model
     model_split = model_name.split('_')
 
     # model_name = "{0}/{1}/window_{5}_epoch_{2}_{3}_{4}_lr{6}_emb{7}_model.pkl".format(args.datadir, date, epoch+1, args.direction, args.optimizer, args.window, args.lr, args.embeddingdim)
-    window = int(model_split[1])
-    direction = model_split[4]
-    optim_func = model_split[5]
-    lr = float(model_split[6].strip('lr'))
-    embedding_dim = int(model_split[7].strip('emb'))
+    window = int(model_split[3])
+    direction = model_split[6]
+    optim_func = model_split[7]
+    lr = float(model_split[8].strip('lr'))
+    embedding_dim = int(model_split[9].strip('emb'))
 
     print("MODEL DETAILS:\nWindow size: {0}\nDirection: {1}\nOptimizer: {2} with lr={3}\nEmbedding dimension: {4}".format(window, direction, optim_func, lr, embedding_dim))
 
@@ -79,7 +79,7 @@ if __name__ == '__main__':
     print("LOADING SAVED MODEL AND OPTIMIZER")
     use_cuda = torch.cuda.is_available()    
     if use_cuda:
-        checkpoint = torch.load(model_name,  map_location='gpu')
+        checkpoint = torch.load(model_name)
     else:
         checkpoint = torch.load(model_name, map_location='cpu')
 
@@ -92,6 +92,9 @@ if __name__ == '__main__':
     
     net.load_state_dict(checkpoint['model_state_dict'])
     # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
+    if use_cuda:
+        net.cuda()
 
     criterion = nn.BCEWithLogitsLoss()
 
@@ -106,11 +109,7 @@ if __name__ == '__main__':
         words = sorted(preprocess_test.wc, key=preprocess_test.wc.get, reverse=True)
         words_array = np.array(words)
 
-        # get learned embeddings
-        if use_cuda:
-            idx2vec = net.in_embedding.weight.data.numpy()
-        else:
-            idx2vec = net.in_embedding.weight.data.cpu().numpy()
+        idx2vec = net.in_embedding.weight.data.cpu().numpy()
 
         plot_name = "_".join(model_split[:-1]) + '_tSNE.png'
-        plot_tSNE(idx2vec=idx2vec, word2idx=preprocess_test.word2idx, words=words_array, filename=plot_name, use_cuda=use_cuda)
+        plot_tSNE(idx2vec=idx2vec, word2idx=preprocess_test.word2idx, words=words_array, filename=plot_name)

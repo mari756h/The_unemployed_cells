@@ -40,6 +40,7 @@ def parse_args():
     parser.add_argument('--momentum', type=float, default=0, help="used if optimizer is SGD")
     parser.add_argument('--testnetwork', action='store_true')
     parser.add_argument('--tSNE', action='store_true')
+    parser.add_argument('--resume', action='store_true', help="Resume training if added and has been done before")
 
     return parser.parse_args()
 
@@ -78,15 +79,39 @@ train_loader = data_utils.DataLoader(preprocess_train.data, batch_size=args.batc
 valid_loader = data_utils.DataLoader(preprocess_valid.data, batch_size=args.batchsize, shuffle=True, num_workers=4)
 
 date = datetime.datetime.now().strftime("%Y_%m_%d")
-os.makedirs(args.datadir + '/' + date, exist_ok=True )
+path = args.datadir + '/' + date
+os.makedirs(path, exist_ok=True )
+use_cuda = torch.cuda.is_available()
+
+if args.resume:
+    print("RESUMING TRAINING")
+    model_match = "window_{4}_epoch_._{2}_{3}_lr{5}_emb{6}_model.pkl".format(args.datadir, date, args.direction, args.optimizer, args.window, args.lr, args.embeddingdim)
+
+    import re
+    regex = re.compile(model_match)
+    files = os.listdir(path)
+    matches = list(filter(regex.findall, files))
+    if len(matches) > 0:
+        max_epoch = max([int(x.split('_')[3]) for x in matches])
+        print("Maximum epoch previously run:", max_epoch, "\n")
+
+        model_name = model_match.split('.')[0] + str(max_epoch) +  ".".join(model_match.split('.')[1:])
+
+        if use_cuda:
+            checkpoint = torch.load(model_name)
+        else:
+            checkpoint = torch.load(model_name, map_location='cpu')
+        net.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    else:
+        print("No model of these specifications has been run before. Starting a new model instead.\n")
 
 ## training 
 print("Num epochs:", args.epochs)
 print("Direction:", args.direction)
 print("Optimizer:", args.optimizer)
 print("Learning rate:", args.lr)
-
-use_cuda = torch.cuda.is_available()
+print("Window size:", args.window)
 
 if use_cuda:
     print("Cuda available")
@@ -148,7 +173,7 @@ for epoch in range(args.epochs):
 
     # save model
     model_name = "{0}/{1}/window_{5}_epoch_{2}_{3}_{4}_lr{6}_emb{7}_model.pkl".format(args.datadir, date, epoch+1, args.direction, args.optimizer, args.window, args.lr, args.embeddingdim)
-    torch.save({'model_state_dict': net.state_dict(), 'optimizer_state_dict': optimizer.state_dict(), 'epoch': epoch+1, 'train_loss': train_loss, 'valid_loss': valid_loss}, model_name)
+    torch.save({'model_state_dict': net.state_dict(), 'optimizer_state_dict': optimizer.state_dict(), 'epoch': epoch+1, 'train_loss': train_loss[-1], 'valid_loss': valid_loss[-1]}, model_name)
 
 # plot
 runned_epochs = list(range(0, len(train_loss)))
@@ -166,8 +191,6 @@ p.add_tools(HoverTool(tooltips=tooltips))
 
 output_file(args.datadir + '/' + date + '/{0}_{1}_{2}_training_losses.html'.format(args.window, args.direction, args.optimizer))
 save(p)
-
-print("donenenene :D")
 
 if args.testnetwork:
     print("EVALUATING ON TEST SET")
@@ -189,12 +212,9 @@ if args.testnetwork:
         words_array = np.array(words)
 
         # get learned embeddings
-        if use_cuda:
-            idx2vec = net.in_embedding.weight.data.numpy()
-        else:
-            idx2vec = net.in_embedding.weight.data.cpu().numpy()
+        idx2vec = net.in_embedding.weight.data.cpu().numpy()
 
         # plot it!
         model_split = model_name.split('_')
         plot_name = "_".join(model_split[:-1]) + '_tSNE.png'
-        plot_tSNE(idx2vec=idx2vec, word2idx=preprocess_test.word2idx, words=words_array, filename=plot_name, use_cuda=use_cuda)
+        plot_tSNE(idx2vec=idx2vec, word2idx=preprocess_test.word2idx, words=words_array, filename=plot_name)
