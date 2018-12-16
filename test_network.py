@@ -9,7 +9,7 @@ import argparse
 
 from utils.data_process import Preprocess
 from model.skipgram import SkipGram
-from utils.funcs import plot_tSNE
+from utils.funcs import plot_tSNE, accuracy_sg
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -23,8 +23,8 @@ def parse_args():
 
     return parser.parse_args()
 
-def test_net(dataloader, net, criterion, use_cuda):
-    test_loss, test_length = 0, 0
+def test_net(dataloader, net, criterion, use_cuda, window, direction):
+    test_loss, test_length, test_accs = 0, 0, 0
 
     N = len(dataloader)
 
@@ -42,10 +42,14 @@ def test_net(dataloader, net, criterion, use_cuda):
 
         test_loss += loss.item() * center.shape[0]
         test_length += center.shape[0]
-    
-    test_loss /= test_length
 
-    return test_loss
+        acc = accuracy_sg(y_pred=output, y_true=contexts, window=window, direction=direction)
+        test_accs += acc * center.shape[0]
+
+    test_loss /= test_length
+    test_accs /= test_length
+
+    return test_loss, test_accs
 
 if __name__ == '__main__':
     args = parse_args()
@@ -101,8 +105,8 @@ if __name__ == '__main__':
     print("Model was trained in {} epoch(s)".format(checkpoint['epoch']))
 
     print("EVALUATING ON TEST SET")
-    test_loss = test_net(dataloader=test_loader, net=net, criterion=criterion, use_cuda=use_cuda)
-    print("Test loss: {:.3f}, Test perplexity: {:.3f}".format(test_loss, np.exp(test_loss)))
+    test_loss, test_acc = test_net(dataloader=test_loader, net=net, criterion=criterion, use_cuda=use_cuda, window=window, direction=direction)
+    print("Test loss: {:.3f}, Test perplexity: {:.3f}, Test accuracy: {:.3f}".format(test_loss, np.exp(test_loss), test_acc))
 
     if args.tSNE:
         # get words / amino acids that are unique
@@ -111,5 +115,5 @@ if __name__ == '__main__':
 
         idx2vec = net.in_embedding.weight.data.cpu().numpy()
 
-        plot_name = "_".join(model_split[:-1]) + '_tSNE_TESTS.png'
+        plot_name = "_".join(model_split[:-1]) + '_tSNE.png'
         plot_tSNE(idx2vec=idx2vec, word2idx=preprocess_test.word2idx, words=words_array, filename=plot_name)

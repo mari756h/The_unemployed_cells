@@ -54,3 +54,23 @@ def plot_tSNE(idx2vec, word2idx, words, filename):
     plt.legend(custom_legend, ['positively charged', 'negatively charged', 'polar uncharged', 'special cases', 'hydrophobic'], loc='center left', bbox_to_anchor=(1, 0.5), title='Side chain properties')
     plt.savefig(filename)
     plt.show()
+
+def accuracy_sg(y_pred, y_true, window, direction):
+    """
+    Predict accuracy of word embeddings in skip-gram model.
+    y_pred: embeddings
+    y_true: true output
+    window: window size
+    """
+
+    if direction == 'both':
+        multiply = 2
+    else:
+        multiply = 1
+
+    _, idx = torch.max(y_pred, dim=1)
+    check = torch.eq(idx[:window*multiply], y_true)
+
+    # Estimate accuracy
+    acc = check.sum().item()/len(check)
+    return acc
