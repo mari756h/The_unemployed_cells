@@ -203,7 +203,7 @@ if args.testnetwork:
     test_loader = data_utils.DataLoader(preprocess_test.data, batch_size=args.batchsize, shuffle=True, num_workers=4)
 
     print("Evaluating..")
-    test_loss = test_net(dataloader=test_loader, model=net, criterion=criterion, use_cuda=use_cuda)
+    test_loss = test_net(dataloader=test_loader, net=net, criterion=criterion, use_cuda=use_cuda)
     print("Test loss: {:.3f}, Test perplexity: {:.3f}".format(test_loss, np.exp(test_loss)))
 
     if args.tSNE:

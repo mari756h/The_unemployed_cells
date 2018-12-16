@@ -23,7 +23,7 @@ def parse_args():
 
     return parser.parse_args()
 
-def test_net(dataloader, model, criterion, use_cuda):
+def test_net(dataloader, net, criterion, use_cuda):
     test_loss, test_length = 0, 0
 
     N = len(dataloader)
@@ -101,7 +101,7 @@ if __name__ == '__main__':
     print("Model was trained in {} epoch(s)".format(checkpoint['epoch']))
 
     print("EVALUATING ON TEST SET")
-    test_loss = test_net(dataloader=test_loader, model=net, criterion=criterion, use_cuda=use_cuda)
+    test_loss = test_net(dataloader=test_loader, net=net, criterion=criterion, use_cuda=use_cuda)
     print("Test loss: {:.3f}, Test perplexity: {:.3f}".format(test_loss, np.exp(test_loss)))
 
     if args.tSNE:
@@ -111,5 +111,5 @@ if __name__ == '__main__':
 
         idx2vec = net.in_embedding.weight.data.cpu().numpy()
 
-        plot_name = "_".join(model_split[:-1]) + '_tSNE.png'
+        plot_name = "_".join(model_split[:-1]) + '_tSNE_TESTS.png'
         plot_tSNE(idx2vec=idx2vec, word2idx=preprocess_test.word2idx, words=words_array, filename=plot_name)

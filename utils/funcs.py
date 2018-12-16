@@ -29,13 +29,28 @@ def plot_tSNE(idx2vec, word2idx, words, filename):
     y=X_fit[:,1]
 
     # set colors
-    num_colors = len(words)
-    colors = cm.rainbow(np.linspace(0, 1, num_colors))
+    #num_colors = len(words)
+    #colors = cm.rainbow(np.linspace(0, 1, num_colors))
+
+    coloring_scheme = {'R': 'green', 'H': 'green', 'K': 'green', #positively charged side chains 
+                        'D': 'red', 'E': 'red',  #negatively charges side chains
+                        'S': 'blue', 'T': 'blue', 'N': 'blue', 'Q': 'blue', #polar uncharged side chains
+                        'C': 'orange', 'U': 'orange', 'G': 'orange', 'P': 'orange', # special cases
+                        'A': 'purple', 'V': 'purple', 'I': 'purple', 'L': 'purple', 'M': 'purple', 'F': 'purple', 'Y': 'purple', 'W': 'purple', #hydrophobic side chains
+                        '_': 'white'}
+
+    custom_legend = [plt.Line2D([0], [0], color='green', marker='o', linestyle=''), 
+                    plt.Line2D([0], [0], color='red', marker='o', linestyle=''), 
+                    plt.Line2D([0], [0], color='blue', marker='o', linestyle=''), 
+                    plt.Line2D([0], [0], color='orange', marker='o', linestyle=''), 
+                    plt.Line2D([0], [0], color='purple', marker='o', linestyle='')]
 
     # plot
-    plt.figure(figsize=(10,10))
-    for i, c, label in zip(target_ids, colors, words):
-        plt.scatter(x[i], y[i], c=c, label=label)
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    plt.figure(figsize=(10,8))
+    for i, label in zip(target_ids, words):
+        if label == '_': continue # skip
+        plt.scatter(x[i], y[i], c=coloring_scheme[label])
+        plt.annotate(label, (x[i]+0.05, y[i]+0.05))
+    plt.legend(custom_legend, ['positively charged', 'negatively charged', 'polar uncharged', 'special cases', 'hydrophobic'], loc='center left', bbox_to_anchor=(1, 0.5), title='Side chain properties')
     plt.savefig(filename)
     plt.show()
