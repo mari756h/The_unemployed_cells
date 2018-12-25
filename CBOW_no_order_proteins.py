@@ -116,7 +116,7 @@ def main(args):
     net = cbow(vocab_size=len(train_data.word_to_idx), embedding_dim=args.embedding_dim, padding=pad)
     #optimizer = optim.SGD(net.parameters(), lr=0.01)
     #optimizer = optim.Adam(net.parameters(), lr=0.01)
-    optimizer = optim.SGD(net.parameters(), lr=0.0001, momentum=0.9, weight_decay=1e-5)
+    optimizer = optim.SGD(net.parameters(), lr=0.001)
     #optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.5)
 
     # If GPU is available
