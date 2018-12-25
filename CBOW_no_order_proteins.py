@@ -26,6 +26,7 @@ def get_args():
     parser.add_argument('-pad', required=False, dest='padding', action='store_true', help='Whether to use padding on not.')
     parser.add_argument('-ws', required=False, dest='window_size', type=int, help='Size of the sliding window.')
     parser.add_argument('-b', required=False, dest='batch_size', type=int, help='Size of neural network batches.')
+    parser.add_argument('-lr', required=False, dest='learning_rate', type=float, help='Learning rate for neural network.')
     parser.add_argument('-f', required=True, dest='post_fix', type=str, help='Post_fix for file names.')
     parser.add_argument('-e', required=False, dest='epochs', type=int, help='Number of epochs.')
     parser.add_argument('-embed', required=False, dest='embedding_dim', type=int, help='Number of embedding dimensions.')
@@ -35,7 +36,7 @@ def get_args():
 
     
     # Set defaults
-    parser.set_defaults(window_direction='both', padding=True, window_size=3, batch_size=128, epochs=10, resume=False, embedding_dim=100, test=False)
+    parser.set_defaults(window_direction='both', padding=True, window_size=3, batch_size=128, epochs=10, learning_rate=0.01, resume=False, embedding_dim=100, test=False)
     return parser
 
 
@@ -114,10 +115,8 @@ def main(args):
     # Set loss, model and optimizer
     criterion = nn.CrossEntropyLoss()
     net = cbow(vocab_size=len(train_data.word_to_idx), embedding_dim=args.embedding_dim, padding=pad)
-    #optimizer = optim.SGD(net.parameters(), lr=0.01)
     #optimizer = optim.Adam(net.parameters(), lr=0.01)
-    optimizer = optim.SGD(net.parameters(), lr=0.001)
-    #optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.5)
+    optimizer = optim.SGD(net.parameters(), lr=args.learning_rate)
 
     # If GPU is available
     if use_cuda:
