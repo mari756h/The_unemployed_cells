@@ -125,11 +125,16 @@ def main(args):
     print(net)
 
     # Log file
-    if os.path.exists('results/log_{}.txt'.format(args.post_fix)): 
-        log_file = open('results/log_{}.txt'.format(args.post_fix), 'a')
-    else: 
-        log_file = open('results/log_{}.txt'.format(args.post_fix), 'w')
-        log_file.write('epoch\tset\tloss\tperp\tacc\n')
+    if os.path.exists('results/log_{}.txt'.format(args.post_fix)) == False:
+        with open('results/log_{}.txt'.format(args.post_fix), 'w') as log_file: 
+            log_file.write('epoch\tset\tloss\tperp\tacc\n')
+    else:
+        print('Log file exists.')
+
+        #log_file = open('results/log_{}.txt'.format(args.post_fix), 'a')
+    #else: 
+        #log_file = open('results/log_{}.txt'.format(args.post_fix), 'w')
+        #log_file.write('epoch\tset\tloss\tperp\tacc\n')
 
     # Resume training from checkpoint
     if args.resume or args.test: 
@@ -211,7 +216,8 @@ def main(args):
         print('# Epoch %2i, TEST: loss=%f, perp=%f, acc=%f\n' % (epoch+1, test_losses/test_lengths, np.exp(test_losses/test_lengths), test_accs/test_lengths))
 
         # Write to log file
-        log_file.write(str(epoch+1)+'\ttest\t'+str(test_losses/test_lengths)+'\t'+str(np.exp(test_losses/test_lengths))+'\t'+str(test_accs/test_lengths)+'\n')
+        with open('results/log_{}.txt'.format(args.post_fix), 'a') as log_file: 
+            log_file.write(str(epoch+1)+'\ttest\t'+str(test_losses/test_lengths)+'\t'+str(np.exp(test_losses/test_lengths))+'\t'+str(test_accs/test_lengths)+'\n')
 
         # Show top N validation samples and their results
         print('# Prediction examples: prediction | target | input')
@@ -339,8 +345,9 @@ def main(args):
             print('# Epoch %2i, VALID: loss=%f, perp=%f, acc=%f\n' % (epoch+1, val_losses/val_lengths, np.exp(val_losses/val_lengths), val_accs/val_lengths))
 
             # Write to log file
-            log_file.write(str(epoch+1)+'\ttrain\t'+str(current_loss/train_lengths)+'\t'+str(np.exp(current_loss/train_lengths))+'\t'+str(train_accs/train_lengths)+'\n')
-            log_file.write(str(epoch+1)+'\tvalid\t'+str(val_losses/val_lengths)+'\t'+str(np.exp(val_losses/val_lengths))+'\t'+str(val_accs/val_lengths)+'\n')
+            with open('results/log_{}.txt'.format(args.post_fix), 'a') as log_file: 
+                log_file.write(str(epoch+1)+'\ttrain\t'+str(current_loss/train_lengths)+'\t'+str(np.exp(current_loss/train_lengths))+'\t'+str(train_accs/train_lengths)+'\n')
+                log_file.write(str(epoch+1)+'\tvalid\t'+str(val_losses/val_lengths)+'\t'+str(np.exp(val_losses/val_lengths))+'\t'+str(val_accs/val_lengths)+'\n')
 
             #if epoch % 1 == 0:
             #print("### Epoch %2i:\tTrain loss %f, Train perplexity %f, Train acc %f\n\t\tValid loss %f, Valid perplexity %f, Valid acc %f\n" % (
@@ -387,7 +394,7 @@ def main(args):
             #    ax.set_ylim(15, 20)
         plt.savefig('results/performances_{}.pdf'.format(args.post_fix), dpi=1000)
 
-        log_file.close()
+        #log_file.close()
 
 
 #######################
