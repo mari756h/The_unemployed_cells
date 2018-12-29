@@ -11,8 +11,8 @@ wkdir = '/Users/Marianne/Dropbox (Personlig)/DTU/9. semester/02456_Deep_learning
 ########################
 #   Load logs
 ########################
-label = 'after_ws5_em2'
-both1 = pd.read_table(wkdir+'log_after_5_lr001_em2.txt')
+label = 'both_ws20_em2'
+both1 = pd.read_table(wkdir+'log_both_20_lr001_em2.txt')
 both_train = both1[both1.set == 'train']
 both_val = both1[both1.set == 'valid']
 epochs = list(range(1, both_train.shape[0]+1))
@@ -49,7 +49,7 @@ word2idx = torch.load(wkdir+'checkpoints/word2idx.pt')
 print(word2idx)
 
 # Set up neural net
-check = torch.load(wkdir+'checkpoints/check50_after_5_lr001_em2.pt', map_location='cpu')
+check = torch.load(wkdir+'checkpoints/check20_both_20_lr001_em2.pt', map_location='cpu')
 net = cbow(vocab_size=len(word2idx), embedding_dim=2, padding=True)
 net.load_state_dict(check['model_state_dict'])
 
