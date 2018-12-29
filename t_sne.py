@@ -11,8 +11,8 @@ wkdir = '/Users/Marianne/Dropbox (Personlig)/DTU/9. semester/02456_Deep_learning
 ########################
 #   Load logs
 ########################
-label = 'both_ws20_em2'
-both1 = pd.read_table(wkdir+'log_both_20_lr001_em2.txt')
+label = 'before_ws1_em2'
+both1 = pd.read_table(wkdir+'logs/log_before_1_lr001_em2.txt')
 both_train = both1[both1.set == 'train']
 both_val = both1[both1.set == 'valid']
 epochs = list(range(1, both_train.shape[0]+1))
@@ -45,6 +45,7 @@ print('# Minimum epoch:', epoch_min)
 #   Make t-SNE plot
 ########################
 # Load word2idx
+"""
 word2idx = torch.load(wkdir+'checkpoints/word2idx.pt')
 print(word2idx)
 
@@ -64,11 +65,4 @@ idx2vec = net.embeddings.weight.data.cpu().numpy()
 plot_name = wkdir + label + '_tSNE.pdf'
 plot_tSNE(idx2vec=idx2vec, word2idx=word2idx, words=words_array, filename=plot_name)
 
-
-
-
-
-
-
-
-
+"""
