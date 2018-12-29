@@ -22,6 +22,8 @@ from functions import *
 #########################
 def get_args():
     parser = argparse.ArgumentParser(description='Module will run continuous bag-of-words on amino acid sequences.')
+    parser.add_argument('-train', required=True, dest='train_data', type=str, help='Path to training data.')
+    parser.add_argument('-val', required=True, dest='val_data', type=str, help='Path to validation data.')
     parser.add_argument('-d', required=False, dest='window_direction', type=str, help='Direction of window, can be both, before or after.')
     parser.add_argument('-pad', required=False, dest='padding', action='store_true', help='Whether to use padding on not.')
     parser.add_argument('-ws', required=False, dest='window_size', type=int, help='Size of the sliding window.')
@@ -31,12 +33,13 @@ def get_args():
     parser.add_argument('-e', required=False, dest='epochs', type=int, help='Number of epochs.')
     parser.add_argument('-embed', required=False, dest='embedding_dim', type=int, help='Number of embedding dimensions.')
     parser.add_argument('-r', required=False, dest='resume', type=str, help='Filename for saved checkpoint.')
-    parser.add_argument('-test', required=False, dest='test', action='store_true', help='If this is to test model.')
+    parser.add_argument('-test', required=False, dest='test', type=str, help='Path to test data.')
     parser.add_argument('-tsne', required=False, dest='tsne', action='store_true', help='If the test makes t-SNE plot.')
 
     
     # Set defaults
-    parser.set_defaults(window_direction='both', padding=True, window_size=3, batch_size=128, epochs=10, learning_rate=0.01, resume=False, embedding_dim=100, test=False)
+    parser.set_defaults(window_direction='both', padding=True, window_size=3, batch_size=128, epochs=10, learning_rate=0.01, 
+        resume=False, embedding_dim=100, test=False)
     return parser
 
 
@@ -57,7 +60,7 @@ def main(args):
 
     # Get training data
     train_data = DataLoader()
-    train_data.load_corpus(path='data/proteins.train.txt')
+    train_data.load_corpus(path=args.train_data)
     train_data.count_corpus(padding=pad)
 
     # Make context pairs for training data
@@ -81,7 +84,7 @@ def main(args):
     ############################
     # Get validation data
     valid_data = DataLoader()
-    valid_data.load_corpus(path='data/proteins.val.txt')
+    valid_data.load_corpus(path=args.val_data)
 
     # Make context pairs for validation data
     valid_data.make_context_pairs(window_size=ws, padding=pad, direction=d_ws)
@@ -155,7 +158,7 @@ def main(args):
     if args.test: 
         # Get test data
         test_data = DataLoader()
-        test_data.load_corpus(path='data/proteins.test.txt')
+        test_data.load_corpus(path=args.test_data)
 
         # Make context pairs for validation data
         test_data.make_context_pairs(window_size=ws, padding=pad, direction=d_ws)
