@@ -117,7 +117,7 @@ class Preprocess:
         if subsampling:
             self.subsampling(self.wc, threshold)
         if convert:
-            self.convert(subsampling, direction)
+            self.convert(direction)
         
     def subsampling(self, counts, threshold):
         """Class method for implementing subsampling.
