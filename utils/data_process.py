@@ -141,7 +141,7 @@ class Preprocess:
         self.discard_table = discard_table
         
     def discard(self, word_id):
-         """Class method for randomly discarding a word.
+        """Class method for randomly discarding a word.
         
         Parameters
         ----------

@@ -3,7 +3,7 @@
 import numpy as np
 from utils.data_process import Preprocess
 from model.skipgram import SkipGram
-from test_network import test_net
+from test_network_sg import test_net
 from utils.funcs import plot_tSNE
 
 import torch
@@ -35,12 +35,9 @@ def parse_args():
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--subsampling', action='store_true')
     parser.add_argument('--logevery', type=int, default=10000)
-    parser.add_argument('--negatives', type=int, default=5)
     parser.add_argument('--optimizer', type=str, default='Adam', choices=['Adam', 'SGD'], help="implemented optimizers")
-    parser.add_argument('--momentum', type=float, default=0, help="used if optimizer is SGD")
     parser.add_argument('--testnetwork', action='store_true')
     parser.add_argument('--tSNE', action='store_true')
-    parser.add_argument('--resume', action='store_true', help="Resume training if added and has been done before")
     parser.add_argument('--save', action='store_true', help="save model each epoch")
     return parser.parse_args()
 
@@ -65,13 +62,13 @@ preprocess_valid.build(file=f, subsampling=args.subsampling, word2idx=preprocess
 f.close()
 
 print("NETWORK SETUP")
-net = SkipGram(embedding_dim=args.embeddingdim, vocab_size=preprocess_train.vocab_size + 1, n_negs=args.negatives)
+net = SkipGram(embedding_dim=args.embeddingdim, vocab_size=preprocess_train.vocab_size + 1)
 print(net)
 
 if args.optimizer == 'Adam':
     optimizer = optim.Adam(net.parameters(), lr=args.lr)
 elif args.optimizer == 'SGD':
-    optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum)
+    optimizer = optim.SGD(net.parameters(), lr=args.lr)
 
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, mode='min', patience=5)
 
@@ -82,29 +79,6 @@ date = datetime.datetime.now().strftime("%Y_%m_%d")
 path = args.datadir + '/' + date
 os.makedirs(path, exist_ok=True )
 use_cuda = torch.cuda.is_available()
-
-if args.resume:
-    print("RESUMING TRAINING")
-    model_match = "window_{4}_epoch_._{2}_{3}_lr{5}_emb{6}_model.pkl".format(args.datadir, date, args.direction, args.optimizer, args.window, args.lr, args.embeddingdim)
-
-    import re
-    regex = re.compile(model_match)
-    files = os.listdir(path)
-    matches = list(filter(regex.findall, files))
-    if len(matches) > 0:
-        max_epoch = max([int(x.split('_')[3]) for x in matches])
-        print("Maximum epoch previously run:", max_epoch, "\n")
-
-        model_name = model_match.split('.')[0] + str(max_epoch) +  ".".join(model_match.split('.')[1:])
-
-        if use_cuda:
-            checkpoint = torch.load(model_name)
-        else:
-            checkpoint = torch.load(model_name, map_location='cpu')
-        net.load_state_dict(checkpoint['model_state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    else:
-        print("No model of these specifications has been run before. Starting a new model instead.\n")
 
 ## training 
 print("Num epochs:", args.epochs)

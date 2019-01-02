@@ -38,15 +38,9 @@ class SkipGram(nn.Module):
             context_size = context.shape[1]
         except IndexError:
             context_size = 1
-        # nwords = torch.FloatTensor(batch_size, context_size*self.n_negs).uniform_(0, self.vocab_size-1).long()
 
         center_vectors = self.in_embedding(center).unsqueeze(2)
         context_vectors = self.out_embedding(context)
-        # negative_vectors = self.out_embedding(nwords).neg()
-        
-        # pos_loss = torch.bmm(context_vectors, center_vectors).squeeze().sigmoid().log().mean(-1)
-        # neg_loss = torch.bmm(negative_vectors, center_vectors).squeeze().sigmoid().log().view(-1, context_size, self.n_negs).sum(2).mean(1)
-
         
         predictions = torch.bmm(context_vectors, center_vectors)
         predictions = predictions.squeeze()
