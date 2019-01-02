@@ -87,8 +87,12 @@ if __name__ == '__main__':
         n = 0
         correct = 0
         for line in f.readlines():
-            n += 1
             
+            # skip comment lines
+            if line.startswith('#'):
+                continue
+            
+            n += 1
             w1, w2, w3, w4 = line.strip('\n').split(' ')
             correct += eval_analogies(idx2vec, idx2word, word2idx[w1], word2idx[w2], word2idx[w3], word2idx[w4], verbose=args.verbose)
         
