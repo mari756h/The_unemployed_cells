@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from model.skipgram import SkipGram
+from model.cbow import cbow
 from utils.data_process import Preprocess
 import argparse
 
@@ -15,6 +16,7 @@ def parse_args():
     parser.add_argument('--model_type', type=str, help = "Skip-gram (SG) or continouos bag of words (CBOW) model?", choices=['CBOW', 'SG'])
     parser.add_argument('--model', type=str, help="Path + name to saved model")
     parser.add_argument('--emb_dim', type=int, default=2, help="Embedding dimension")
+    parser.add_argument('--vocab_size', type=int, default=22, help="size of vocabulary")
     parser.add_argument('--verbose', action='store_true', help="Print analogies")
 
     return parser.parse_args()
@@ -66,9 +68,10 @@ if __name__ == '__main__':
         word2idx = eval(f.readline())
 
     if args.model_type == 'SG':
-        net = SkipGram(embedding_dim=args.emb_dim, vocab_size=22)
+        net = SkipGram(embedding_dim=args.emb_dim, vocab_size=args.vocab_size)
     elif args.model_type == 'CBOW':    
-        pass
+        net = cbow(embedding_dim=args.emb_dim, vocab_size=args.vocab_size)
+    
     checkpoint = torch.load(args.model, map_location='cpu')
 
     net.load_state_dict(checkpoint['model_state_dict'])
