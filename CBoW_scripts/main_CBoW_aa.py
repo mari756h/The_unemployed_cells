@@ -24,7 +24,7 @@ def get_args():
     parser = argparse.ArgumentParser(description='Module will run continuous bag-of-words on amino acid sequences.')
     parser.add_argument('-train', required=True, dest='train_data', type=str, help='Path to training data.')
     parser.add_argument('-val', required=True, dest='val_data', type=str, help='Path to validation data.')
-    parser.add_argument('-d', required=False, dest='window_direction', type=str, help='Direction of window, can be both, before or after.')
+    parser.add_argument('-d', required=False, dest='window_direction', type=str, choices=['before', 'after', 'both'], help='Direction of window.')
     parser.add_argument('-pad', required=False, dest='padding', action='store_true', help='Whether to use padding on not.')
     parser.add_argument('-ws', required=False, dest='window_size', type=int, help='Size of the sliding window.')
     parser.add_argument('-b', required=False, dest='batch_size', type=int, help='Size of neural network batches.')
@@ -33,13 +33,12 @@ def get_args():
     parser.add_argument('-e', required=False, dest='epochs', type=int, help='Number of epochs.')
     parser.add_argument('-embed', required=False, dest='embedding_dim', type=int, help='Number of embedding dimensions.')
     parser.add_argument('-r', required=False, dest='resume', type=str, help='Filename for saved checkpoint.')
-    parser.add_argument('-test', required=False, dest='test', type=str, help='Path to test data.')
-    parser.add_argument('-tsne', required=False, dest='tsne', action='store_true', help='If the test makes t-SNE plot.')
+    parser.add_argument('-wd', required=False, dest='wkdir', type=str, help='Path to working directory.')
 
     
     # Set defaults
     parser.set_defaults(window_direction='both', padding=True, window_size=3, batch_size=128, epochs=10, learning_rate=0.01, 
-        resume=False, embedding_dim=100, test=False)
+        resume=False, embedding_dim=100, test=False, wkdir=os.os.getcwd()+'/')
     return parser
 
 
@@ -118,7 +117,6 @@ def main(args):
     # Set loss, model and optimizer
     criterion = nn.CrossEntropyLoss()
     net = cbow(vocab_size=len(train_data.word_to_idx), embedding_dim=args.embedding_dim, padding=pad)
-    #optimizer = optim.Adam(net.parameters(), lr=0.01)
     optimizer = optim.SGD(net.parameters(), lr=args.learning_rate)
 
     # If GPU is available
@@ -128,19 +126,14 @@ def main(args):
     print(net)
 
     # Log file
-    if os.path.exists('results/log_{}.txt'.format(args.post_fix)) == False:
-        with open('results/log_{}.txt'.format(args.post_fix), 'w') as log_file: 
+    if os.path.exists('log_{}.txt'.format(args.post_fix)) == False:
+        with open('log_{}.txt'.format(args.post_fix), 'w') as log_file: 
             log_file.write('epoch\tset\tloss\tperp\tacc\n')
     else:
         print('Log file exists.')
 
-        #log_file = open('results/log_{}.txt'.format(args.post_fix), 'a')
-    #else: 
-        #log_file = open('results/log_{}.txt'.format(args.post_fix), 'w')
-        #log_file.write('epoch\tset\tloss\tperp\tacc\n')
-
     # Resume training from checkpoint
-    if args.resume or args.test: 
+    if args.resume: 
         checkpoint = torch.load(args.resume)
         net.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -149,106 +142,6 @@ def main(args):
         begin = epoch+1
     else: 
         begin = 0
-
-
-
-    #########################
-    # # Model test
-    #########################
-    if args.test: 
-        # Get test data
-        test_data = DataLoader()
-        test_data.load_corpus(path=args.test_data)
-
-        # Make context pairs for validation data
-        test_data.make_context_pairs(window_size=ws, padding=pad, direction=d_ws)
-
-        # Convert to numpy
-        test_data.words_to_index(word2idx=train_data.word_to_idx)
-
-        # After data has been loaded it is good to check what is looks like. 
-        print('Number of test samples:\t', test_data.context_array[0].shape)
-
-
-        # Make batches
-        test = data_utils.TensorDataset(torch.from_numpy(test_data.context_array[0]), torch.from_numpy(test_data.context_array[1]))
-        load_test = data_utils.DataLoader(test, batch_size=bs, shuffle=True)
-
-        # Run model on test set
-        test_acc, test_loss = [], []
-        
-        ### Evaluation ###
-        net.eval()
-        
-        test_preds, test_targs = [], []
-        test_losses, test_accs, test_lengths = 0, 0, 0
-        examples, n_examples = [], 5
-
-        for i, (inputs, labels) in enumerate(load_test):
-            n_samples = inputs.shape[0]
-          
-            # Convert targets and input to cuda if available
-            if use_cuda: 
-              inputs = inputs.cuda()
-              labels = labels.cuda()
-            
-            # Get predictions
-            output = net(inputs)
-            preds = torch.max(input=output, dim=1)[1]
-            
-            if use_cuda: 
-               preds = preds.data.cpu().numpy()
-            else: 
-               preds = preds.data.numpy()
-            
-            # Calculate validation loss
-            test_losses += criterion(output, labels).item() * n_samples
-            test_accs += accuracy(y_true=labels, y_pred=output) * n_samples
-            test_lengths += n_samples
-            
-            # Save predictions and labels
-            test_preds += preds.tolist()
-            test_targs += labels.tolist()
-            
-            # Save example inputs
-            if len(examples) < n_examples: 
-                for n in range(n_examples):
-                  examples.append([inputs[n], labels[n].item(), preds[n].item()])
-        
-        # Show results of evaluation
-        print('# Epoch %2i, TEST: loss=%f, perp=%f, acc=%f\n' % (epoch+1, test_losses/test_lengths, np.exp(test_losses/test_lengths), test_accs/test_lengths))
-
-        # Write to log file
-        with open('results/log_{}.txt'.format(args.post_fix), 'a') as log_file: 
-            log_file.write(str(epoch+1)+'\ttest\t'+str(test_losses/test_lengths)+'\t'+str(np.exp(test_losses/test_lengths))+'\t'+str(test_accs/test_lengths)+'\n')
-
-        # Show top N validation samples and their results
-        print('# Prediction examples: prediction | target | input')
-        for items in examples: 
-            i, l, p = items
-
-            # Transform indices to words
-            input2word = [train_data.idx_to_word[e.item()] for e in i]
-            pred2word = train_data.idx_to_word[p]
-            targ2word = train_data.idx_to_word[l]
-            print('\t', pred2word, '|', targ2word, '|', input2word)
-            #print(pred2word + ' | ' + input2word + ' | ' + str(input2word))
-        print('\n')
-
-        log_file.close()
-
-        ### t-SNE plot
-        if args.tsne:  # Made by Hannah Martiny
-            # get words / amino acids that are unique
-            words = sorted(train_data.corpus_counts.wc, key=train_data.corpus_counts.wc.get, reverse=True)
-            words_array = np.array(words)
-
-            # get learned embeddings
-            idx2vec = net.embeddings.weight.data.cpu().numpy()
-
-            plot_name = 'results/' + args.post_fix + '_tSNE.png'
-            plot_tSNE(idx2vec=idx2vec, word2idx=train_data.word_to_idx, words=words_array, filename=plot_name, use_cuda=use_cuda)
-
 
 
     #########################
@@ -348,35 +241,15 @@ def main(args):
             print('# Epoch %2i, VALID: loss=%f, perp=%f, acc=%f\n' % (epoch+1, val_losses/val_lengths, np.exp(val_losses/val_lengths), val_accs/val_lengths))
 
             # Write to log file
-            with open('results/log_{}.txt'.format(args.post_fix), 'a') as log_file: 
+            with open('log_{}.txt'.format(args.post_fix), 'a') as log_file: 
                 log_file.write(str(epoch+1)+'\ttrain\t'+str(current_loss/train_lengths)+'\t'+str(np.exp(current_loss/train_lengths))+'\t'+str(train_accs/train_lengths)+'\n')
                 log_file.write(str(epoch+1)+'\tvalid\t'+str(val_losses/val_lengths)+'\t'+str(np.exp(val_losses/val_lengths))+'\t'+str(val_accs/val_lengths)+'\n')
-
-            #if epoch % 1 == 0:
-            #print("### Epoch %2i:\tTrain loss %f, Train perplexity %f, Train acc %f\n\t\tValid loss %f, Valid perplexity %f, Valid acc %f\n" % (
-            #        epoch+1, train_loss[-1], train_perp, train_acc_cur, valid_loss[-1], val_perp, valid_acc_cur))
-
-            # Show top N validation samples and their results
-            #print('# Predition examples: prediction | target | input')
-            #for items in examples: 
-            #  i, l, p = items
-
-              # Transform indices to words
-            #  input2word = [train_data.idx_to_word[e.item()] for e in i]
-            #  pred2word = train_data.idx_to_word[p]
-            #  targ2word = train_data.idx_to_word[l]
-            #  print('\t', pred2word, '|', targ2word, '|', input2word)
-            #  #print(pred2word + ' | ' + input2word + ' | ' + str(input2word))
-            #print('\n')
-
-            # Save model 
-            #torch.save(net.state_dict(), 'models/model_state_dict_epoch{0}_{1}.pt'.format(epoch+1, args.post_fix))
 
             # Save checkpoint
             torch.save({'epoch': epoch, 'model_state_dict': net.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'train_loss': current_loss/train_lengths, 'valid_loss': val_losses/val_lengths}, 
-                'checkpoints/check{0}_{1}.pt'.format(epoch+1, args.post_fix))
+                'check{0}_{1}.pt'.format(epoch+1, args.post_fix))
 
 
         # Plot performances 
@@ -391,13 +264,7 @@ def main(args):
             ax.legend(legends[i])
             ax.set_xlabel('Epochs')
             ax.set_ylabel(ylabels[i])
-            #if ylabels[i] == 'Accuracy': 
-            #    ax.set_ylim(0, 0.3)
-            #else: 
-            #    ax.set_ylim(15, 20)
-        plt.savefig('results/performances_{}.pdf'.format(args.post_fix), dpi=1000)
-
-        #log_file.close()
+        plt.savefig('perf_{}.pdf'.format(args.post_fix), dpi=1000)
 
 
 #######################
