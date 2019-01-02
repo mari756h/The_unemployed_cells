@@ -3,7 +3,7 @@ Language of life essentially refers all of the information that is encoded by ou
 
 This project aims to predict amino acids in a protein sequence, where two word embedding architectures are used: Continuous Bag-of-Words and  Skip-gram. The models are implemented in Pytorch and the archicture can be seen in the figure below.
 
-**All the results can be seen in this [notebook](..).**
+**All the results can be seen in this [notebook](https://github.com/mari756h/The_unemployed_cells/blob/master/Main%20results.ipynb).**
 
 ![model](model.png)
 
@@ -33,7 +33,7 @@ Instead of predicting the amino acid at the center, the Skip-gram model instead 
 
 To run the Skip-gram model in a terminal, use
 ```console
-python main_sg.py --window 1 --direction both --epochs 10 --optimizer SGD --embeddingdim 2 -lr 1e-2 --save
+python main_sg.py --window WINDOW --direction DIRECTION --epochs EPOCHS --optimizer OPTIMIZER --embeddingdim EMBEDDINGDIM -lr LR --save
 ```
 
 You can specify the following arguments for running the Skip-gram model:
@@ -54,7 +54,7 @@ You can specify the following arguments for running the Skip-gram model:
 - `--tSNE`: boolean, should tSNE plot be created?
 - `--save`: boolean, save model each epoch
 
-### Testing the networks
+## Testing the networks
 Testing the CBoW network is done by running the below script in terminal
 ```console
 python test_cbow.py -model MODEL -test_data TEST_DATA [OPTIONAL FLAGS]
@@ -91,7 +91,7 @@ Compare the top k most similar words to a given word given by one of the embeddi
 ### Run
 Both analogical reasoning and BLOSUM62 comparisons can be run with
 ```console
-python analogical_reasoning.py --model data/window_10_epoch_50_both_SGD_lr0.01_emb2_model.pkl --file data/analogical_reasoning.txt --model_type SG --blosum62
+python analogical_reasoning.py --model MODEL --file FILE --model_type {CBOW, SG} --blosum62
 ```
 
 Arguments for this command are:
