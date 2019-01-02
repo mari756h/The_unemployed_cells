@@ -87,7 +87,7 @@ def compare_blosum62(idx2vec, idx2word, w1, k=3, verbose=True):
     _, pred_idxs = most_similar(idx2vec, idx2word, w1, k, verbose=False, output=True)
 
     if verbose:
-        print("Top {0} closest words to {1}".format(k, idx2word[w1]))
+        print("\nTop {0} closest words to {1}".format(k, idx2word[w1]))
     for pred_idx in pred_idxs:
         if '_' not in [idx2word[w1], idx2word[pred_idx]]:
             # print("Predicted most similar to {0}: {1}".format(idx2word[w1], idx2word[pred_idx]))
@@ -201,11 +201,9 @@ if __name__ == '__main__':
         for line in f.readlines():
             
             # skip comment lines
-            if line.startswith('#'):
-                continue
-            
-            n += 1
-            w1, w2, w3, w4 = line.strip('\n').split(' ')
-            correct += eval_analogies(idx2vec, idx2word, word2idx[w1], word2idx[w2], word2idx[w3], word2idx[w4], verbose=args.verbose)
+            if line[0] != '#':
+                n += 1
+                w1, w2, w3, w4 = line.strip('\n').split(' ')
+                correct += eval_analogies(idx2vec, idx2word, word2idx[w1], word2idx[w2], word2idx[w3], word2idx[w4], verbose=args.verbose)
         
         print("Accuracy for analogical reasoning: {:.3f}".format(correct/n))
