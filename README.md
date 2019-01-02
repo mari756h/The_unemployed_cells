@@ -55,6 +55,18 @@ You can specify the following arguments for running the Skip-gram model:
 - `--save`: boolean, save model each epoch
 
 ### Testing the networks
+Testing the CBoW network is done by running the below script in terminal
+```console
+python test_cbow.py -model MODEL -test_data TEST_DATA [OPTIONAL FLAGS]
+```
+
+The optional flags for testing this model are: 
+- `-direction {before,after,both}`: Direction of window, which can be `before`, `after` or `both` for the models $p\left(y_t|y_{t-c}\right)$, $p\left(y_t|y_{t+c}\right)$ and $p\left(y_t|y_{t-c}^{t+c}\right)$, respectively. 
+- `-padding`: Whether to use padding on not.
+- `-window_size WINDOW_SIZE`: Size of the context window.
+- `-batch_size BATCH_SIZE`: Size of neural network batches.
+- `-embed_dim EMBEDDING_DIM`: Number of embedding dimensions.
+
 Instead of testing the Skip-gram network together with the training loop, one can also use
 ```console
 python test_network_sg.py --model MODEL --tSNE
@@ -67,18 +79,6 @@ Arguments for `test_network_sg.py` are:
 - `--model MODEL`: Path + name to saved model
 - `--batchsize BATCHSIZE`: size of batches
 - `--tSNE`: if specified, creates tSNE plot
-
-Testing the CBoW network is done by running the below script in terminal
-```console
-python test_cbow.py -model MODEL -test_data TEST_DATA [OPTIONAL FLAGS]
-```
-
-The optional flags for testing this model are: 
-- `-direction {before,after,both}`: Direction of window, which can be `before`, `after` or `both` for the models $p\left(y_t|y_{t-c}\right)$, $p\left(y_t|y_{t+c}\right)$ and $p\left(y_t|y_{t-c}^{t+c}\right)$, respectively. 
-- `-padding`: Whether to use padding on not.
-- `-window_size WINDOW_SIZE`: Size of the context window.
-- `-batch_size BATCH_SIZE`: Size of neural network batches.
-- `-embed_dim EMBEDDING_DIM`: Number of embedding dimensions.
 
 
 ## Evaluating the embeddings
