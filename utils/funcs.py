@@ -6,19 +6,22 @@ from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 
 def plot_tSNE(idx2vec, word2idx, words, filename):    
-    """
+    """ Creates the t-SNE plot with the embeddings in 2 dimensions
+
+    Parameters
+    ----------
     idx2vec: embeddings
     word2idx: convert words to their indices
     words: unique words / amino acids
     filename: destination + name of file
+
+    Returns
+    ----------
+    the plot
     """
 
     # initialize tSNE model
     model = TSNE(n_components=2, perplexity=10, n_iter=5000, method='exact', verbose=1, learning_rate=5.0, random_state=1)
-
-    # get unique words
-    # words = sorted(preprocess_test.wc, key=preprocess_test.wc.get, reverse=True)
-    # words_array = np.array(words)
     
     # transform
     X = np.array([idx2vec[word2idx[word]] for word in words])
@@ -30,9 +33,6 @@ def plot_tSNE(idx2vec, word2idx, words, filename):
     y=X_fit[:,1]
 
     # set colors
-    #num_colors = len(words)
-    #colors = cm.rainbow(np.linspace(0, 1, num_colors))
-
     coloring_scheme = {'R': 'green', 'H': 'green', 'K': 'green', #positively charged side chains 
                         'D': 'red', 'E': 'red',  #negatively charges side chains
                         'S': 'blue', 'T': 'blue', 'N': 'blue', 'Q': 'blue', #polar uncharged side chains

@@ -32,6 +32,12 @@ class Preprocess:
         Generate center and context words
     build(file, direction, subsampling=True, threshold=1e-5, word2idx=None, convert=True)
         Creates the vocabulary and data for the Skip-gram model
+    subsampling(counts, threshold)
+        Implements subsampling method to remove word that are very frequent.
+    discard(word_id)
+        Subsample a word with a probability given from subsampling(counts, threshold)
+    convert(direction)
+        converts center and contexts into indices (numerical values)
     """
 
     def __init__(self, window_size, unk):
@@ -83,7 +89,6 @@ class Preprocess:
         threshold: threshold for subsampling. Default: 1e-5
         word2idx: use a specified word2idx or create new. Default: None (create a new word2idx based on input file)
         convert: convert data (boolean). Default: True
-        
         """
 
         print("Creating vocab")
@@ -125,9 +130,6 @@ class Preprocess:
         Return
         ----------
         discard_table: gives probability of word being discarded
-
-        References
-        ----------
         """
         
         N = sum(counts.values())
@@ -139,10 +141,26 @@ class Preprocess:
         self.discard_table = discard_table
         
     def discard(self, word_id):
+         """Class method for randomly discarding a word.
+        
+        Parameters
+        ----------
+        word_id: word index
+
+        Return
+        ----------
+        a boolean value, telling whether or not the word has randomly been subsampled
+        """
+        
         return random.random() > self.discard_table[word_id]
         
-    def convert(self, subsampling, direction):
-
+    def convert(self, direction):
+        """Class method for converting amino acid into indexes.
+        
+        Parameters
+        ----------
+        direction: specifies which direction you are looking in at the data (backward, forward or both)
+        """
         print("Converting corpus..")
         data = []
                 
@@ -163,14 +181,14 @@ if __name__ == '__main__':
 
     print("Train data")
     f = open(args.datadir + '/' + args.traindata, 'r')
-    preprocess_train = Preprocess(window_size=args.window, unk='')
+    preprocess_train = Preprocess(window_size=args.window, unk='_')
     preprocess_train.build(file=f, subsampling=args.subsampling, direction=args.direction)
     f.close()
 
 
     print("Validation data")
     f = open(args.datadir + '/' + args.validdata, 'r')
-    preprocess_valid = Preprocess(window_size=args.window, unk='')
+    preprocess_valid = Preprocess(window_size=args.window, unk='_')
     preprocess_valid.build(file=f, subsampling=args.subsampling, direction=args.direction, word2idx=preprocess_train.word2idx)
     f.close()
 

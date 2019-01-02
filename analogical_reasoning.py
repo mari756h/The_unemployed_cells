@@ -25,6 +25,23 @@ def parse_args():
     return parser.parse_args()
 
 def most_similar(idx2vec, idx2word, w1, k=1, verbose=True, output=False):
+    """ Find the most similar word to w1 in the embedding space
+    
+    Parameters
+    ----------
+    idx2vec: map word index to embedding vector
+    idx2word: map word index to word 
+    w1: input word
+    k: take the k most similar words
+    verbose: print output inside function
+    output: if true, return indexes and probabilities of the k most similar words
+
+    Returns
+    ----------
+    idx: indexes for the most similar words to w1
+    prob: probability of word indexes
+
+    """
     # get embeddings for w1
     w1_emb = idx2vec[w1]
 
@@ -45,6 +62,26 @@ def most_similar(idx2vec, idx2word, w1, k=1, verbose=True, output=False):
         return prob, idx
 
 def compare_blosum62(idx2vec, idx2word, w1, k=3, verbose=True):
+    """ Find the k most similar words in two methods: word embedding and BLOSUM62 matrix [1]
+
+    Parameters
+    ----------
+    idx2vec: map word index to embedding vector
+    idx2word: map word index to word 
+    w1: input word
+    k: take the k most similar words
+    verbose: print output inside function if True
+
+    Returns
+    ----------
+    correct: how many of the k most similar words were found in both methods
+    ns: number of total word pairs being compared
+
+    References
+    ----------
+    1. Qi Y, Oja M, Weston J, Noble WS. A unified multitask architecture for predicting local protein properties. PLoS One. 2012;7(3). doi:10.1371/journal.pone.0032235.
+
+    """
     blosum62 = MatrixInfo.blosum62
     
     _, pred_idxs = most_similar(idx2vec, idx2word, w1, k, verbose=False, output=True)
@@ -78,6 +115,25 @@ def compare_blosum62(idx2vec, idx2word, w1, k=3, verbose=True):
     return correct, ns
 
 def eval_analogies(idx2vec, idx2word, w1, w2, w3, w4, verbose=False):
+    """ Evaluate the analogical reasoning task: w1 is to w2, as w3 is to ? (w4) [1]
+
+    Parameters
+    ----------
+    idx2vec: map word index to embedding vector
+    idx2word: map word index to word 
+    w1, w2, w3: input words
+    w4: the true output word
+    verbose: print output inside function if True
+
+    Returns
+    ----------
+    0 or 1 whether w4 was correctly predicted
+
+    References
+    ----------
+    1. Le Q, Mikolov T. Distributed Representations of Sentences and Documents. http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=EEA503E2812074C19D96737C5EE51176?doi=10.1.1.646.3937&rep=rep1&type=pdf. Set december 27, 2018.
+
+    """
     
     # get embeddings for w1, w2 and w3
     w1_emb = idx2vec[w1]

@@ -3,13 +3,25 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class SkipGram(nn.Module):
+    """Skip-gram architecture in Pytorch
+
+    Attributes:
+    ----------
+    embedding_dim: dimension of embeddings
+    vocab_size: vocabulary size
+    padding_idx: index for padding
+
+    Methods
+    ----------
+    forward(center, context)
+        Sends the data through the embedding dimension and returns log_softmax probabilities
+    """
     
-    def __init__(self, embedding_dim, vocab_size, n_negs=5, padding_idx=0):
+    def __init__(self, embedding_dim, vocab_size, padding_idx=0):
         super(SkipGram, self).__init__()
         
         self.embedding_dim = embedding_dim
         self.vocab_size = vocab_size
-        self.n_negs =5
         
         self.in_embedding = nn.Embedding(num_embeddings = self.vocab_size, embedding_dim = self.embedding_dim, padding_idx=padding_idx)
         self.out_embedding = nn.Embedding(num_embeddings = self.vocab_size, embedding_dim =self.embedding_dim, padding_idx=padding_idx)
