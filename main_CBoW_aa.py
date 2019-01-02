@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import os
-from CBoW_scripts.functions import *
+from functions import *
 
 
 #########################
