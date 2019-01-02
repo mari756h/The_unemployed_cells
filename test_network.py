@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import torch
 import torch.optim as optim
 import torch.utils.data as data_utils
@@ -9,7 +11,7 @@ import argparse
 
 from utils.data_process import Preprocess
 from model.skipgram import SkipGram
-from utils.funcs import plot_tSNE, accuracy_sg
+from utils.funcs import plot_tSNE
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -23,8 +25,8 @@ def parse_args():
 
     return parser.parse_args()
 
-def test_net(dataloader, net, criterion, use_cuda, window, direction):
-    test_loss, test_length, test_accs = 0, 0, 0
+def test_net(dataloader, net, use_cuda, window, direction):
+    test_loss, test_length = 0, 0
 
     N = len(dataloader)
 
@@ -38,18 +40,15 @@ def test_net(dataloader, net, criterion, use_cuda, window, direction):
             contexts = contexts.cuda()
 
         output = net(center, contexts)
-        loss = criterion(output.float(), contexts.float())
+
+        loss = -output.sum(1).mean()
 
         test_loss += loss.item() * center.shape[0]
         test_length += center.shape[0]
 
-        acc = accuracy_sg(y_pred=output, y_true=contexts, window=window, direction=direction)
-        test_accs += acc * center.shape[0]
-
     test_loss /= test_length
-    test_accs /= test_length
 
-    return test_loss, test_accs
+    return test_loss
 
 if __name__ == '__main__':
     args = parse_args()
@@ -88,11 +87,6 @@ if __name__ == '__main__':
         checkpoint = torch.load(model_name, map_location='cpu')
 
     net = SkipGram(embedding_dim=embedding_dim, vocab_size=preprocess_train.vocab_size + 1)
-
-    # if optim_func == 'SGD':
-    #     optimizer = optim.SGD(net.parameters(), lr)
-    # elif optim_func == 'Adam':
-    #     optimizer = optim.Adam(net.parameters(), lr)
     
     net.load_state_dict(checkpoint['model_state_dict'])
     # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -100,13 +94,11 @@ if __name__ == '__main__':
     if use_cuda:
         net.cuda()
 
-    criterion = nn.BCEWithLogitsLoss()
-
     print("Model was trained in {} epoch(s)".format(checkpoint['epoch']))
 
     print("EVALUATING ON TEST SET")
-    test_loss, test_acc = test_net(dataloader=test_loader, net=net, criterion=criterion, use_cuda=use_cuda, window=window, direction=direction)
-    print("Test loss: {:.3f}, Test perplexity: {:.3f}, Test accuracy: {:.3f}".format(test_loss, np.exp(test_loss), test_acc))
+    test_loss = test_net(dataloader=test_loader, net=net, use_cuda=use_cuda, window=window, direction=direction)
+    print("Test loss: {:.3f}, Test perplexity: {:.3f}".format(test_loss, np.exp(test_loss)))
 
     if args.tSNE:
         # get words / amino acids that are unique

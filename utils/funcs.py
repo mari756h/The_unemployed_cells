@@ -1,8 +1,9 @@
+#!/usr/bin/python3
+
 import torch 
 import numpy as np
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 
 def plot_tSNE(idx2vec, word2idx, words, filename):    
     """
@@ -13,7 +14,7 @@ def plot_tSNE(idx2vec, word2idx, words, filename):
     """
 
     # initialize tSNE model
-    model = TSNE(n_components=2, perplexity=10, n_iter=5000, method='exact', verbose=1, learning_rate=5.0)
+    model = TSNE(n_components=2, perplexity=10, n_iter=5000, method='exact', verbose=1, learning_rate=5.0, random_state=1)
 
     # get unique words
     # words = sorted(preprocess_test.wc, key=preprocess_test.wc.get, reverse=True)
@@ -44,33 +45,17 @@ def plot_tSNE(idx2vec, word2idx, words, filename):
                     plt.Line2D([0], [0], color='blue', marker='o', linestyle=''), 
                     plt.Line2D([0], [0], color='orange', marker='o', linestyle=''), 
                     plt.Line2D([0], [0], color='purple', marker='o', linestyle='')]
-
-    # plot
-    plt.figure(figsize=(10,8))
+    
+    # # plot
+    plt.figure(figsize=(20, 20))
+    plt.rcParams.update({'font.size': 50, 'axes.edgecolor': 'black'})
     for i, label in zip(target_ids, words):
-        if label == '_': continue # skip
-        plt.scatter(x[i], y[i], c=coloring_scheme[label])
+        if label == '_' or label == 'padding': continue # skip
+        plt.scatter(x[i], y[i], c=coloring_scheme[label], s=500)
         plt.annotate(label, (x[i]+0.05, y[i]+0.05))
-    plt.legend(custom_legend, ['positively charged', 'negatively charged', 'polar uncharged', 'special cases', 'hydrophobic'], loc='center left', bbox_to_anchor=(1, 0.5), title='Side chain properties')
-    plt.savefig(filename)
-    plt.show()
-
-def accuracy_sg(y_pred, y_true, window, direction):
-    """
-    Predict accuracy of word embeddings in skip-gram model.
-    y_pred: embeddings
-    y_true: true output
-    window: window size
-    """
-
-    if direction == 'both':
-        multiply = 2
-    else:
-        multiply = 1
-
-    _, idx = torch.max(y_pred, dim=1)
-    check = torch.eq(idx[:window*multiply], y_true)
-
-    # Estimate accuracy
-    acc = check.sum().item()/len(check)
-    return acc
+    
+    plt.legend(custom_legend, ['positively charged', 'negatively charged', 'polar uncharged', 'special cases', 'hydrophobic'], loc='best', title='Side chain properties', bbox_to_anchor=(1, 0.5))
+    plt.xlim(-3.5, 3.3)
+    plt.ylim(-2, 3.5)
+    plt.tight_layout()
+    plt.savefig(filename, dpi=1000)

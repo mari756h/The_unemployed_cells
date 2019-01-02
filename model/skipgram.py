@@ -22,7 +22,10 @@ class SkipGram(nn.Module):
         
     def forward(self, center, context):
         # batch_size = center.size()[0]
-        context_size = context.size()[1]
+        try:
+            context_size = context.shape[1]
+        except IndexError:
+            context_size = 1
         # nwords = torch.FloatTensor(batch_size, context_size*self.n_negs).uniform_(0, self.vocab_size-1).long()
 
         center_vectors = self.in_embedding(center).unsqueeze(2)

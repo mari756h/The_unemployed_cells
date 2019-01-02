@@ -33,7 +33,7 @@ def parse_args():
     parser.add_argument('-lr', type=float, default=0.1)
     parser.add_argument('--batchsize', type=int, default=128*5)
     parser.add_argument('--epochs', type=int, default=10)
-    parser.add_argument('--subsampling', type=bool, default=False)
+    parser.add_argument('--subsampling', action='store_true')
     parser.add_argument('--logevery', type=int, default=10000)
     parser.add_argument('--negatives', type=int, default=5)
     parser.add_argument('--optimizer', type=str, default='Adam', choices=['Adam', 'SGD'], help="implemented optimizers")
@@ -41,7 +41,7 @@ def parse_args():
     parser.add_argument('--testnetwork', action='store_true')
     parser.add_argument('--tSNE', action='store_true')
     parser.add_argument('--resume', action='store_true', help="Resume training if added and has been done before")
-
+    parser.add_argument('--save', action='store_true', help="save model each epoch")
     return parser.parse_args()
 
 args = parse_args()
@@ -73,7 +73,9 @@ if args.optimizer == 'Adam':
 elif args.optimizer == 'SGD':
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum)
 
-criterion = nn.BCEWithLogitsLoss()
+criterion = nn.BCEWithLogitsLoss(size_average=True)
+#criterion = nn.NLLLoss()
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, mode='min', patience=5)
 
 train_loader = data_utils.DataLoader(preprocess_train.data, batch_size=args.batchsize, shuffle=True, num_workers=4)
 valid_loader = data_utils.DataLoader(preprocess_valid.data, batch_size=args.batchsize, shuffle=True, num_workers=4)
@@ -136,7 +138,9 @@ for epoch in range(args.epochs):
             contexts = contexts.cuda()
         
         output = net(center, contexts)
-        loss = criterion(output.float(), contexts.float())
+        #loss = criterion(output.float(), contexts.float())
+        loss = -output.sum(1).mean()
+
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -161,17 +165,21 @@ for epoch in range(args.epochs):
             context = context.cuda()
         
         predictions = net(center, context)
-        loss = criterion(predictions.float(), context.float())
-        
-        running_loss += loss.item() * center.shape[0]
+        #loss = criterion(predictions.float(), context.float())
+        loss = -output.sum(1).mean()        
+
+        running_loss += loss.item()* center.shape[0]
         running_length += center.shape[0]
                 
     valid_loss.append(running_loss/running_length)
+
+    scheduler.step(valid_loss[-1])
 
     print("\nEpoch {0}, training loss: {1}, training perplexity: {2}".format(epoch+1, train_loss[-1], np.exp(train_loss[-1])))
     print("Epoch {0}, valid loss: {1}, valid perplexity: {2}\n".format(epoch+1, valid_loss[-1], np.exp(valid_loss[-1])))
 
     # save model
+    #if args.save:
     model_name = "{0}/{1}/window_{5}_epoch_{2}_{3}_{4}_lr{6}_emb{7}_model.pkl".format(args.datadir, date, epoch+1, args.direction, args.optimizer, args.window, args.lr, args.embeddingdim)
     torch.save({'model_state_dict': net.state_dict(), 'optimizer_state_dict': optimizer.state_dict(), 'epoch': epoch+1, 'train_loss': train_loss[-1], 'valid_loss': valid_loss[-1]}, model_name)
 
