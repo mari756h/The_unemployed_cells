@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import os
-from functions import *
+from CBoW_scripts.functions import *
 
 
 #########################
@@ -24,7 +24,7 @@ def get_args():
     parser = argparse.ArgumentParser(description='Module will train continuous bag-of-words on amino acid sequences.')
     parser.add_argument('-train_data', required=True, dest='train_data', type=str, help='Path to training data.')
     parser.add_argument('-val_data', required=True, dest='val_data', type=str, help='Path to validation data.')
-    parser.add_argument('-direction', required=False, dest='window_direction', type=str, choices=['before', 'after', 'both'], help='Direction of window.')
+    parser.add_argument('-direction', required=False, dest='window_direction', type=str, choices=['before', 'after', 'both'], help='Direction of context window.')
     parser.add_argument('-padding', required=False, dest='padding', action='store_true', help='Whether to use padding on not.')
     parser.add_argument('-window_size', required=False, dest='window_size', type=int, help='Size of the context window.')
     parser.add_argument('-batch_size', required=False, dest='batch_size', type=int, help='Size of neural network batches.')
