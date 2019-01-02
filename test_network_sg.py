@@ -41,7 +41,7 @@ def test_net(dataloader, net, use_cuda, window, direction):
 
         output = net(center, contexts)
 
-        loss = -output.sum(1).mean()
+        loss = -output.mean(1).mean()
 
         test_loss += loss.item() * center.shape[0]
         test_length += center.shape[0]

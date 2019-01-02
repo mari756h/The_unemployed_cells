@@ -139,7 +139,7 @@ for epoch in range(args.epochs):
         
         output = net(center, contexts)
         #loss = criterion(output.float(), contexts.float())
-        loss = -output.sum(1).mean()
+        loss = -output.mean(1).mean()
 
         optimizer.zero_grad()
         loss.backward()
@@ -166,7 +166,7 @@ for epoch in range(args.epochs):
         
         predictions = net(center, context)
         #loss = criterion(predictions.float(), context.float())
-        loss = -output.sum(1).mean()        
+        loss = -output.mean(1).mean()        
 
         running_loss += loss.item()* center.shape[0]
         running_length += center.shape[0]

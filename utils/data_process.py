@@ -19,12 +19,40 @@ def parse_args():
     return parser.parse_args()
 
 class Preprocess:
+    """Data preprocessing class for building the data for Skip-gram model
+    
+    Attributes
+    ----------
+    window: window size for data
+    unk: what character to use for unknown data / padding
+
+    Methods
+    ----------
+    skipgram(sentence, i, direction)
+        Generate center and context words
+    build(file, direction, subsampling=True, threshold=1e-5, word2idx=None, convert=True)
+        Creates the vocabulary and data for the Skip-gram model
+    """
+
     def __init__(self, window_size, unk):
         self.window = window_size
         self.unk = unk
         
     def skipgram(self, sentence, i, direction):
-        """Can implement directional skipgram"""
+        """Class method for creating directional skip-gram data.
+        
+        Parameters
+        ----------
+        sentence: list of words in a sentence
+        i: position in current sentence
+        direction: specifies which direction you are looking in at the data (backward, forward or both)
+        
+        Return
+        ----------
+        center: word at the center position i
+        contexts: words around the center
+
+        """
         center = sentence[i]
 
         left = sentence[max(0, i-self.window): i]
@@ -45,6 +73,19 @@ class Preprocess:
             return center, right
                                 
     def build(self, file, direction, subsampling=True, threshold=1e-5, word2idx=None, convert=True):
+        """Class method for building vocabulary and data of center and context words.
+        
+        Parameters
+        ----------
+        file: txt file with sentences
+        direction: specifies which direction you are looking in at the data (backward, forward or both)
+        subsampling: that specifies whether the data should be subsampled. Default: False
+        threshold: threshold for subsampling. Default: 1e-5
+        word2idx: use a specified word2idx or create new. Default: None (create a new word2idx based on input file)
+        convert: convert data (boolean). Default: True
+        
+        """
+
         print("Creating vocab")
         
         self.sentences = []
@@ -74,6 +115,20 @@ class Preprocess:
             self.convert(subsampling, direction)
         
     def subsampling(self, counts, threshold):
+        """Class method for implementing subsampling.
+        
+        Parameters
+        ----------
+        counts: word counts
+        threshold: position in current sentence
+        
+        Return
+        ----------
+        discard_table: gives probability of word being discarded
+
+        References
+        ----------
+        """
         
         N = sum(counts.values())
         
