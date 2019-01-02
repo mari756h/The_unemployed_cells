@@ -17,7 +17,7 @@ python CBoWscripts/main_CBoW_aa.py -train_data TRAIN_DATA -val_data VAL_DATA [OP
 The CBoW model has been implemented to run through command line with the following flags used in the run below: 
 - `-train_data TRAIN_DATA`: Path to training data.
 - `-val_data VAL_DATA`: Path to validation data.
-- `-direction {before,after,both}`: Direction of window, which can be `before`, `after` or `both` for the models $p\left(y_t|y_{t-c}\right)$, $p\left(y_t|y_{t+c}\right)$ and $p\left(y_t|y_{t-c}^{t+c}\right)$, respectively. 
+- `-direction {before,after,both}`: Direction of window, which can be `before`, `after` or `both`. 
 - `-padding`: Whether to use padding on not.
 - `-window_size WINDOW_SIZE`: Size of the context window.
 - `-batch_size BATCH_SIZE`: Size of neural network batches.
