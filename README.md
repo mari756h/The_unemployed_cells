@@ -12,8 +12,22 @@ The goal of CBoW is to predict a amino acid at a position t given the surroundin
 
 To run the CBOW model in a terminal, write
 ```console
-...
+python CBoWscripts/main_CBoW_aa.py -train_data TRAIN_DATA -val_data VAL_DATA [OPTIONAL FLAGS]
 ```
+The CBoW model has been implemented to run through command line with the following flags used in the run below: 
+- `-train_data TRAIN_DATA`: Path to training data.
+- `-val_data VAL_DATA`: Path to validation data.
+- `-direction {before,after,both}`: Direction of window, which can be `before`, `after` or `both` for the models $p\left(y_t|y_{t-c}\right)$, $p\left(y_t|y_{t+c}\right)$ and $p\left(y_t|y_{t-c}^{t+c}\right)$, respectively. 
+- `-padding`: Whether to use padding on not.
+- `-window_size WINDOW_SIZE`: Size of the context window.
+- `-batch_size BATCH_SIZE`: Size of neural network batches.
+- `-learning_rate LEARNING_RATE`: Learning rate for neural network.
+- `-f POST_FIX`Post_fix for output files. 
+- `-epochs EPOCHS`: Number of epochs.
+- `-embed_dim EMBEDDING_DIM`: Number of embedding dimensions.
+- `-resume RESUME`: Filename for saved checkpoint.
+- `-wkdir WKDIR`: Path to directory for output files. 
+
 ## Skip-gram
 Instead of predicting the amino acid at the center, the Skip-gram model instead optimizes the prediction of the context words given a center word at position t. [1, 2]
 
@@ -40,8 +54,8 @@ You can specify the following arguments for running the Skip-gram model:
 - `--tSNE`: boolean, should tSNE plot be created?
 - `--save`: boolean, save model each epoch
 
-### Testing the network 
-Instead of testing the network together with the training loop, one can also use
+### Testing the networks
+Instead of testing the Skip-gram network together with the training loop, one can also use
 ```console
 python test_network_sg.py --model MODEL --tSNE
 ``` 
@@ -53,6 +67,19 @@ Arguments for `test_network_sg.py` are:
 - `--model MODEL`: Path + name to saved model
 - `--batchsize BATCHSIZE`: size of batches
 - `--tSNE`: if specified, creates tSNE plot
+
+Testing the CBoW network is done by running the below script in terminal
+```console
+python test_cbow.py -model MODEL -test_data TEST_DATA [OPTIONAL FLAGS]
+```
+
+The optional flags for testing this model are: 
+- `-direction {before,after,both}`: Direction of window, which can be `before`, `after` or `both` for the models $p\left(y_t|y_{t-c}\right)$, $p\left(y_t|y_{t+c}\right)$ and $p\left(y_t|y_{t-c}^{t+c}\right)$, respectively. 
+- `-padding`: Whether to use padding on not.
+- `-window_size WINDOW_SIZE`: Size of the context window.
+- `-batch_size BATCH_SIZE`: Size of neural network batches.
+- `-embed_dim EMBEDDING_DIM`: Number of embedding dimensions.
+
 
 ## Evaluating the embeddings
 ### Analogical reasoning
@@ -78,7 +105,7 @@ Arguments for this command are:
 - `--verbose`: Print all results
 - `--blosum62`: Compare with blosum62 scores (requires biopython)
 
-## References
+# References
 1. Mikolov T, Chen K, Corrado G, Dean J. Efficient Estimation of Word Representations in Vector Space. January 2013. http://arxiv.org/abs/1301.3781.
 2. Mikolov T, Sutskever I, Chen K, Corrado G, Dean J. Distributed Representations of Words and Phrases and their Compositionality. October 2013. http://arxiv.org/abs/1310.4546.
 3. Qi Y, Oja M, Weston J, Noble WS. A unified multitask architecture for predicting local protein properties. PLoS One. 2012;7(3). doi:10.1371/journal.pone.0032235.
