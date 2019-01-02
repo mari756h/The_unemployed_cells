@@ -73,8 +73,6 @@ if args.optimizer == 'Adam':
 elif args.optimizer == 'SGD':
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum)
 
-criterion = nn.BCEWithLogitsLoss(size_average=True)
-#criterion = nn.NLLLoss()
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, mode='min', patience=5)
 
 train_loader = data_utils.DataLoader(preprocess_train.data, batch_size=args.batchsize, shuffle=True, num_workers=4)

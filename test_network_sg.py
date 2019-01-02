@@ -25,7 +25,20 @@ def parse_args():
 
     return parser.parse_args()
 
-def test_net(dataloader, net, use_cuda, window, direction):
+def test_net(dataloader, net, use_cuda, direction):
+    """ Evaluates the network on the test data set
+    
+    Parameters
+    ----------
+    dataloader: data iterator
+    net: deep learning network
+    use_cuda: can it run on a gpu?
+
+    Returns
+    ----------
+    test_loss : network loss on test set
+
+    """
     test_loss, test_length = 0, 0
 
     N = len(dataloader)
@@ -97,7 +110,7 @@ if __name__ == '__main__':
     print("Model was trained in {} epoch(s)".format(checkpoint['epoch']))
 
     print("EVALUATING ON TEST SET")
-    test_loss = test_net(dataloader=test_loader, net=net, use_cuda=use_cuda, window=window, direction=direction)
+    test_loss = test_net(dataloader=test_loader, net=net, use_cuda=use_cuda)
     print("Test loss: {:.3f}, Test perplexity: {:.3f}".format(test_loss, np.exp(test_loss)))
 
     if args.tSNE:
