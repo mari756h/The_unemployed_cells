@@ -4,7 +4,6 @@ import torch
 import torch.nn.functional as F
 from model.skipgram import SkipGram
 from model.cbow import cbow
-from utils.data_process import Preprocess
 import argparse
 from Bio.SubsMat import MatrixInfo
 from collections import Counter
@@ -183,7 +182,7 @@ if __name__ == '__main__':
     if args.blosum62:
         correct_blosum62, n = 0, 0
         for aa in range(len(idx2word)):
-            score, ns = compare_blosum62(idx2vec, idx2word, aa, verbose=args.verbose)
+            score, ns = compare_blosum62(idx2vec, idx2word, aa, k=3, verbose=args.verbose)
             if isinstance(score, int):
                 correct_blosum62 += score
                 n += ns
