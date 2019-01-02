@@ -232,8 +232,8 @@ def plot_tSNE(idx2vec, word2idx, words, filename):
     # plot
     plt.figure(figsize=(20, 20))
     plt.rcParams.update({'font.size': 50, 'axes.edgecolor': 'black'})
-    plt.xlim(-3.5,3.3)
-    plt.ylim(-2,3.5)
+    #plt.xlim(-3.5,3.3)
+    #plt.ylim(-2,3.5)
     for i, label in zip(target_ids, words):
         if label == '_' or label == 'padding': continue # skip
         plt.scatter(x[i], y[i], c=coloring_scheme[label], s=500)
