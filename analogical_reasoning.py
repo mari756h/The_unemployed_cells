@@ -23,7 +23,7 @@ def parse_args():
 
 def most_similar(idx2vec, idx2word, w1):
     # get embeddings for w1
-    w1_emb = idx2vec[w1-1]
+    w1_emb = idx2vec[w1]
 
     # find most similar word to w1
     dist = torch.matmul(idx2vec, w1_emb)
@@ -34,9 +34,9 @@ def most_similar(idx2vec, idx2word, w1):
 def eval_analogies(idx2vec, idx2word, w1, w2, w3, w4, verbose=False):
     
     # get embeddings for w1, w2 and w3
-    w1_emb = idx2vec[w1-1]
-    w2_emb = idx2vec[w2-1]
-    w3_emb = idx2vec[w3-1]
+    w1_emb = idx2vec[w1]
+    w2_emb = idx2vec[w2]
+    w3_emb = idx2vec[w3]
 
     # target
     target = w3_emb + (w2_emb-w1_emb)
@@ -55,7 +55,7 @@ def eval_analogies(idx2vec, idx2word, w1, w2, w3, w4, verbose=False):
     
     if idx.item() == w4: # correct
         return 1
-    else: # false
+    else:
         return 0
 
 if __name__ == '__main__':
@@ -63,20 +63,20 @@ if __name__ == '__main__':
 
     with open(args.idx2word, 'r') as f:
         idx2word = eval(f.readline())
-
+    
     with open(args.word2idx, 'r') as f:
         word2idx = eval(f.readline())
-
-    if args.model_type == 'SG':
-        net = SkipGram(embedding_dim=args.emb_dim, vocab_size=args.vocab_size)
-    elif args.model_type == 'CBOW':    
-        net = cbow(embedding_dim=args.emb_dim, vocab_size=args.vocab_size)
     
     checkpoint = torch.load(args.model, map_location='cpu')
 
-    net.load_state_dict(checkpoint['model_state_dict'])
-
-    idx2vec = net.in_embedding.weight.data.cpu()#.numpy()
+    if args.model_type == 'SG':
+        net = SkipGram(embedding_dim=args.emb_dim, vocab_size=args.vocab_size)
+        net.load_state_dict(checkpoint['model_state_dict'])
+        idx2vec = net.in_embedding.weight.data.cpu()#.numpy()
+    elif args.model_type == 'CBOW':    
+        net = cbow(embedding_dim=args.emb_dim, vocab_size=args.vocab_size)
+        net.load_state_dict(checkpoint['model_state_dict'])
+        idx2vec = net.embeddings.weight.data.cpu()
     
     similar = {}
     for aa in range(len(idx2word)):
