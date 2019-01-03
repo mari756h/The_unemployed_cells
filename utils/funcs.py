@@ -55,7 +55,7 @@ def plot_tSNE(idx2vec, word2idx, words, filename):
         plt.annotate(label, (x[i]+0.05, y[i]+0.05))
     
     plt.legend(custom_legend, ['positively charged', 'negatively charged', 'polar uncharged', 'special cases', 'hydrophobic'], loc='best', title='Side chain properties', bbox_to_anchor=(1, 0.5))
-    plt.xlim(-3.5, 3.3)
-    plt.ylim(-2, 3.5)
+    # plt.xlim(-3.5, 3.3)
+    # plt.ylim(-2, 3.5)
     plt.tight_layout()
     plt.savefig(filename, dpi=1000)
