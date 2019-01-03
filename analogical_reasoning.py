@@ -60,7 +60,7 @@ def most_similar(idx2vec, idx2word, w1, k=1, verbose=True, output=False):
     if output:
         return prob, idx
 
-def compare_blosum62(idx2vec, idx2word, w1, k=3, verbose=True):
+def compare_blosum62(idx2vec, idx2word, w1, k=3, verbose=True, unk='_'):
     """ Find the k most similar words in two methods: word embedding and BLOSUM62 matrix [1]
 
     Parameters
@@ -70,6 +70,7 @@ def compare_blosum62(idx2vec, idx2word, w1, k=3, verbose=True):
     w1: input word
     k: take the k most similar words
     verbose: print output inside function if True
+    unk: unknown or padding symbol
 
     Returns
     ----------
@@ -89,7 +90,7 @@ def compare_blosum62(idx2vec, idx2word, w1, k=3, verbose=True):
         print("\nTop {0} closest words to {1}".format(k, idx2word[w1]))
     for pred_idx in pred_idxs:
         pred_idx = pred_idx.item()
-        if '_' not in [idx2word[w1], idx2word[pred_idx]] or 'padding' not in [idx2word[w1], idx2word[pred_idx]]:
+        if unk not in [idx2word[w1], idx2word[pred_idx]]:
             # print("Predicted most similar to {0}: {1}".format(idx2word[w1], idx2word[pred_idx]))
 
             pair_pred = (idx2word[w1], idx2word[pred_idx])
