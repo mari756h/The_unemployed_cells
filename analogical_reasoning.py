@@ -88,7 +88,8 @@ def compare_blosum62(idx2vec, idx2word, w1, k=3, verbose=True):
     if verbose:
         print("\nTop {0} closest words to {1}".format(k, idx2word[w1]))
     for pred_idx in pred_idxs:
-        if '_' not in [idx2word[w1], idx2word[pred_idx]]:
+        pred_idx = pred_idx.item()
+        if '_' not in [idx2word[w1], idx2word[pred_idx]] or 'padding' not in [idx2word[w1], idx2word[pred_idx]]:
             # print("Predicted most similar to {0}: {1}".format(idx2word[w1], idx2word[pred_idx]))
 
             pair_pred = (idx2word[w1], idx2word[pred_idx])
@@ -148,7 +149,7 @@ def eval_analogies(idx2vec, idx2word, w1, w2, w3, w4, verbose=False):
     
     if verbose:
         print("Predicted analogy:")
-        print("{0} is to {1}, as {2} is to {3}".format(idx2word[w1], idx2word[w2], idx2word[w3], idx2word[idx]))
+        print("{0} is to {1}, as {2} is to {3}".format(idx2word[w1], idx2word[w2], idx2word[w3], idx2word[idx.item()]))
 
         print("Expected analogy:")
         print("{0} is to {1}, as {2} is to {3}".format(idx2word[w1], idx2word[w2], idx2word[w3], idx2word[w4]))
