@@ -69,7 +69,7 @@ The optional flags for testing this model are:
 
 Instead of testing the Skip-gram network together with the training loop, one can also use
 ```console
-python test_network_sg.py --model MODEL --tSNE
+python utils/test_network_sg.py --model MODEL --tSNE
 ``` 
 
 Arguments for `test_network_sg.py` are:
@@ -91,7 +91,7 @@ Compare the top k most similar words to a given word given by one of the embeddi
 ### Run
 Both analogical reasoning and BLOSUM62 comparisons can be run with
 ```console
-python analogical_reasoning.py --model MODEL --file FILE --model_type {CBOW, SG} --blosum62
+python utils/analogical_reasoning.py --model MODEL --file FILE --model_type {CBOW, SG} --blosum62
 ```
 
 Arguments for this command are:

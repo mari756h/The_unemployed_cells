@@ -5,7 +5,7 @@ import torch.nn.functional as F
 class SkipGram(nn.Module):
     """Skip-gram architecture in Pytorch
 
-    Attributes:
+    Attributes
     ----------
     embedding_dim: dimension of embeddings
     vocab_size: vocabulary size
