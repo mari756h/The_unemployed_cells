@@ -10,10 +10,14 @@ def plot_tSNE(idx2vec, word2idx, words, filename):
 
     Parameters
     ----------
-    idx2vec: embeddings
-    word2idx: convert words to their indices
-    words: unique words / amino acids
-    filename: destination + name of file
+    idx2vec: array
+        embeddings
+    word2idx: dict
+        convert words to their indices
+    words: list
+         unique words / amino acids
+    filename: str
+        destination + name of file
 
     Returns
     ----------

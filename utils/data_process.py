@@ -23,8 +23,10 @@ class Preprocess:
     
     Attributes
     ----------
-    window: window size for data
-    unk: what character to use for unknown data / padding
+    window: int
+        window size for data
+    unk: char
+        what character to use for unknown data / padding
 
     Methods
     ----------
@@ -49,14 +51,19 @@ class Preprocess:
         
         Parameters
         ----------
-        sentence: list of words in a sentence
-        i: position in current sentence
-        direction: specifies which direction you are looking in at the data (backward, forward or both)
+        sentence: list
+            list of words in a sentence
+        i: int
+            position in current sentence
+        direction: str
+            specifies which direction you are looking in at the data (backward, forward or both)
         
         Return
         ----------
-        center: word at the center position i
-        contexts: words around the center
+        center: value
+            word at the center position i
+        contexts: list
+            words around the center
 
         """
         center = sentence[i]
@@ -83,12 +90,18 @@ class Preprocess:
         
         Parameters
         ----------
-        file: txt file with sentences
-        direction: specifies which direction you are looking in at the data (backward, forward or both)
-        subsampling: that specifies whether the data should be subsampled. Default: False
-        threshold: threshold for subsampling. Default: 1e-5
-        word2idx: use a specified word2idx or create new. Default: None (create a new word2idx based on input file)
-        convert: convert data (boolean). Default: True
+        file: str
+            txt file with sentences
+        direction: str
+            specifies which direction you are looking in at the data (backward, forward or both)
+        subsampling: boolean
+            that specifies whether the data should be subsampled. Default: False
+        threshold: float
+            threshold for subsampling. Default: 1e-5
+        word2idx: None or dictionary
+            use a specified word2idx or create new. Default: None (create a new word2idx based on input file)
+        convert: boolean
+            convert data. Default: True
         """
 
         print("Creating vocab")
@@ -124,8 +137,10 @@ class Preprocess:
         
         Parameters
         ----------
-        counts: word counts
-        threshold: position in current sentence
+        counts: dictionary
+            word counts
+        threshold: float
+            threshold to divide frequency
         
         Return
         ----------
@@ -145,7 +160,8 @@ class Preprocess:
         
         Parameters
         ----------
-        word_id: word index
+        word_id: int
+            index for word to maybe be discarded
 
         Return
         ----------
@@ -159,7 +175,8 @@ class Preprocess:
         
         Parameters
         ----------
-        direction: specifies which direction you are looking in at the data (backward, forward or both)
+        direction: str
+            specifies which direction you are looking in at the data (backward, forward or both)
         """
         print("Converting corpus..")
         data = []

@@ -7,9 +7,12 @@ class SkipGram(nn.Module):
 
     Attributes
     ----------
-    embedding_dim: dimension of embeddings
-    vocab_size: vocabulary size
-    padding_idx: index for padding
+    embedding_dim: int
+        dimension of embeddings
+    vocab_size: int
+        vocabulary size
+    padding_idx: int
+        index for padding
 
     Methods
     ----------

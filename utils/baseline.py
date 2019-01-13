@@ -19,7 +19,43 @@ def parse_args():
     return parser.parse_args()
 
 class BaseProbabilities:
-    """Create data for creating the baseline network"""
+    """Create data for creating the baseline network.
+
+    The probabilities are calculated for the amino acid pairs as given by the parameters: direction, window, and unordered.
+    The window size is an integer that specifies how large the subsequence is, e.g. if window=3, we look at a subsequence with 3 amino acids in it.
+    Direction specifies whether for a given amino acid (aa_t) we look at what is part of the sequence before or what comes after. 
+    If the direction ='forward', we look at the amino acids after aa_t, e.g. aa_(t+1, t+2, .., t+(window-1)). 
+    For direction = 'backward', we look at aa_(t-1, t-2, .., t-(window-1))
+    Unordered refers to the idea that the order might specify something specific, so we can test whether or not a sequence of (aa_1, aa_2, aa_3) has a different probability than (aa_1, aa_3, aa_2) or (aa_2, aa_3, aa_1).
+    If unordered is true, we do not care whether the subsequence is (aa_1, aa_2, aa_3) or e.g. (aa_1, aa_3, aa_2).
+
+    Example:
+    For an amino acid at position t, the direction is backward and the window size is 3. That means we are looking at the following sequence: 
+        w1 = aa_(t-2)
+        w2 = aa_(t-1)
+        w3 = aa_t
+    
+    The probability for a subsequence (w1, w2, w3) occuring given what is the context (w1, w2):
+        p = p(w1, w2, w3)/p(w1, w2)
+
+    
+    Attributes
+    ----------
+    direction: specifies what part of the sequence we are looking at 
+    window: size of subsequence 
+    unordered: whether we care about the order of the amino acids
+
+    Methods
+    ----------
+    create_pairs(filename) 
+        creates both the amino acid subsequences (pairs) and counts occurences to convert it to the probabilities.
+    export(name)
+        function to export the probability dataframe and the dataset pairs.
+
+    convert_word2idx(word2idx)
+        convert amino acid letters into indices (numbers)
+
+    """
 
     def __init__(self, direction, window, unordered=False):
         self.direction = direction
@@ -38,6 +74,12 @@ class BaseProbabilities:
         self.prob_combined = {} 
     
     def create_pairs(self, filename):
+        """Function to create and count amino acid pairs (subsequences) and converts the counts into probabilities.
+
+        Attributes
+        ----------
+            filename: name of file containing protein sequences
+        """
         self.pair_data = []
 
         with open(filename, 'r') as f:
@@ -93,6 +135,7 @@ class BaseProbabilities:
         self.df = self.df.fillna(0)
 
     def export(self, name):
+        """Exports data"""
         self.df.to_excel(name)
 
         print("Table of probabilities exported to\n {name}".format(name=name))
@@ -112,6 +155,15 @@ class BaseProbabilities:
 
     
     def convert_word2idx(self, word2idx=None):
+        """Converts amino acid letters into word indices (numbers)
+        
+        Attributes
+        ----------
+        word2idx: None or dictionary
+            If specified, uses the given object as word2idx.
+            If not specified (None), create a new word2idx dictionary.
+
+        """
         if word2idx is not None:
             with open(word2idx, 'r') as f:
                 self.word2idx = json.load(f)

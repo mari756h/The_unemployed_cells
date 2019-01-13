@@ -28,17 +28,25 @@ def most_similar(idx2vec, idx2word, w1, k=1, verbose=True, output=False):
     
     Parameters
     ----------
-    idx2vec: map word index to embedding vector
-    idx2word: map word index to word 
-    w1: input word
-    k: take the k most similar words
-    verbose: print output inside function
-    output: if true, return indexes and probabilities of the k most similar words
+    idx2vec: array or matrix
+        map word index to embedding vector
+    idx2word: list
+        map word index to word 
+    w1: str
+        input word
+    k: integer, default: 1
+        take the k most similar words
+    verbose: boolean, default: True
+        print output inside function
+    output: boolean, default: False
+        if true, return indexes and probabilities of the k most similar words
 
     Returns
     ----------
-    idx: indexes for the most similar words to w1
-    prob: probability of word indexes
+    idx: tensor 
+        indexes for the most similar words to w1
+    prob: tensor
+        probability of word indexes
 
     """
     # get embeddings for w1
@@ -65,17 +73,25 @@ def compare_blosum62(idx2vec, idx2word, w1, k=3, verbose=True, unk='_'):
 
     Parameters
     ----------
-    idx2vec: map word index to embedding vector
-    idx2word: map word index to word 
-    w1: input word
-    k: take the k most similar words
-    verbose: print output inside function if True
-    unk: unknown or padding symbol
+    idx2vec: vector or tensor
+        map word index to embedding vector
+    idx2word: list
+        map word index to word 
+    w1: str
+        input word
+    k: int, default: 3
+        take the k most similar words
+    verbose: boolean, default: True
+        print output inside function if True
+    unk: str, default: '_'
+        unknown or padding symbol
 
     Returns
     ----------
-    correct: how many of the k most similar words were found in both methods
-    ns: number of total word pairs being compared
+    correct: int
+        how many of the k most similar words were found in both methods
+    ns: int
+        number of total word pairs being compared
 
     References
     ----------
@@ -120,11 +136,16 @@ def eval_analogies(idx2vec, idx2word, w1, w2, w3, w4, verbose=False):
 
     Parameters
     ----------
-    idx2vec: map word index to embedding vector
-    idx2word: map word index to word 
-    w1, w2, w3: input words
-    w4: the true output word
-    verbose: print output inside function if True
+    idx2vec: tensor or array
+        map word index to embedding vector
+    idx2word: list
+        map word index to word 
+    w1, w2, w3: str
+        input words
+    w4: str
+        the true output word
+    verbose: boolean, default: False
+        print output inside function if True
 
     Returns
     ----------
