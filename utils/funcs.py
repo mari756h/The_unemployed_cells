@@ -63,3 +63,11 @@ def plot_tSNE(idx2vec, word2idx, words, filename):
     # plt.ylim(-2, 3.5)
     plt.tight_layout()
     plt.savefig(filename, dpi=1000)
+
+def compute_conv_dim(dim_size, kernel_size_conv, padding_conv, stride_conv):
+    dim = int((dim_size - kernel_size_conv + 2 * padding_conv) / stride_conv+ 1)
+    return dim
+
+def compute_pool_dim(dim_size, padding, dilation, kernel, stride):
+    dim = int((dim_size+2*padding-dilation*(kernel-1)-1)/stride +1)
+    return dim

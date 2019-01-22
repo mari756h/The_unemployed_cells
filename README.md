@@ -10,9 +10,9 @@ This project aims to predict amino acids in a protein sequence, where two word e
 ## Continuous  Bag-of-Words (CBoW)
 The goal of CBoW is to predict a amino acid at a position t given the surrounding words (contexts), meaning that we try to optimize the probabilities of each amino acid at position t. [1]
 
-To run the CBOW model in a terminal, write
+To run the CBoW model in a terminal, write
 ```console
-python CBoWscripts/main_CBoW_aa.py -train_data TRAIN_DATA -val_data VAL_DATA [OPTIONAL FLAGS]
+python main_CBoW_aa.py -train_data TRAIN_DATA -val_data VAL_DATA [OPTIONAL FLAGS]
 ```
 The CBoW model has been implemented to run through command line with the following flags used in the run below: 
 - `-train_data TRAIN_DATA`: Path to training data.
@@ -55,9 +55,9 @@ You can specify the following arguments for running the Skip-gram model:
 - `--save`: boolean, save model each epoch
 
 ## Testing the networks
-Testing the CBoW network is done by running the below script in terminal
+Testing the CBoW network can also be done by running the below script in terminal
 ```console
-python test_cbow.py -model MODEL -test_data TEST_DATA [OPTIONAL FLAGS]
+python utils/test_cbow.py -model MODEL -test_data TEST_DATA [OPTIONAL FLAGS]
 ```
 
 The optional flags for testing this model are: 

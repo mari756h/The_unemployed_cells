@@ -67,7 +67,6 @@ def main(args):
 
     # Check word contexts
     word_sum = len(train_data.word_data)
-    print(word_sum)
     for context, word in train_data.word_data[:10]: 
         print(context, word)
 
@@ -171,7 +170,7 @@ def main(args):
               labels = labels.cuda()
 
             # Zero gradient
-            net.zero_grad()
+            optimizer.zero_grad()
 
             # Run the forward pass, getting probabilities over next words
             probs = net(inputs)

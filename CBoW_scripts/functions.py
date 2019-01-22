@@ -20,8 +20,9 @@ import os
 #########################
 # Data loader class
 class DataLoader: 
-    def __init__(self):
+    def __init__(self, padding='_'):
         self.corpus = []
+        self.padding = '_'
     
     # Load words
     def load_corpus(self, path): 
@@ -47,7 +48,7 @@ class DataLoader:
         if padding: 
             indices = list(range(1,len(unique)+1))
             self.word_to_idx = dict(zip(sorted(unique), indices))
-            self.word_to_idx['padding'] = 0
+            self.word_to_idx[self.padding] = 0
         else: 
             indices = list(range(len(unique)))
             self.word_to_idx = dict(zip(sorted(unique), indices))
@@ -70,7 +71,7 @@ class DataLoader:
         for line in self.corpus: 
             if padding: 
                 # Add padding corresponding to the size of the window on either side
-                padding = ['padding']*window_size
+                padding = [self.padding]*window_size
 
                 # Set direction of padding
                 if self.direction=='both': 
@@ -103,10 +104,13 @@ class DataLoader:
         print('\tDone\n')
 
     # Convert word_data to numpy array tuples
-    def words_to_index(self, word2idx):
+    def words_to_index(self, word2idx=None):
         if hasattr(self, 'window_size') and hasattr(self, 'direction'): 
             print('# Converting words to indices...')
             
+            if word2idx is not None:
+                self.word_to_idx = word2idx
+
             # Pre-allocate
             if self.direction == 'both': 
                 columns = self.window_size*2
@@ -115,13 +119,12 @@ class DataLoader:
 
             data = np.empty((len(self.word_data), columns), dtype=int)
             labels = np.empty((len(self.word_data)), dtype=int)
-            print(data.shape)
             
             # Run through context pairs and fill arrays
             i = 0
             for d, l in self.word_data: 
-                data[i, :] = np.array([word2idx[w] for w in d])
-                labels[i,] = word2idx[l]
+                data[i, :] = np.array([self.word_to_idx[w] for w in d])
+                labels[i,] = self.word_to_idx[l]
  
                 i += 1
                 
@@ -169,7 +172,7 @@ class cbow(nn.Module):
 # Estimate performance
 def accuracy(y_true, y_pred):
     # Make y_pred for the word with max probability
-    values, indices = torch.max(input=y_pred, dim=1)
+    _, indices = torch.max(input=y_pred, dim=1)
     
     # Check if indices match
     check = torch.eq(indices, y_true)
