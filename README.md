@@ -7,6 +7,11 @@ This project aims to predict amino acids in a protein sequence, where two word e
 
 ![model](model.png)
 
+**Update January 2019**: This project has further been expanded to the use of convolutional neural networks (CNNs). The results of the CNNs are visualized in [this notebook](https://github.com/mari756h/The_unemployed_cells/blob/master/notebooks/Visualize.ipynb).
+
+The CNN model architecture is as follows
+![cnn](model_cnn.png)
+
 ## Continuous  Bag-of-Words (CBoW)
 The goal of CBoW is to predict a amino acid at a position t given the surrounding words (contexts), meaning that we try to optimize the probabilities of each amino acid at position t. [1]
 
@@ -105,7 +110,57 @@ Arguments for this command are:
 - `--verbose`: Print all results
 - `--blosum62`: Compare with blosum62 scores (requires biopython)
 
+## Baseline for conditional probabilities in the data
+To investigate these, run
+```console
+python main_baseline.py --datafile DATAFILE --word2idxfile WORD2IDXFILE
+```
+
+Required arguments:
+- `--datafile`: Path + name to formatted data file with sentences if `--convert` is not specified
+- `--word2idxfile`: Path + name to word2idx file
+
+Optional arguments:
+- `--convert`: If specified, probabilities table is created from the datafile.
+- `--file`: Path + name to data file with sentences if `--convert` is given
+- `--window`: Window size if `--convert` is givens
+- `--direction`: {forward,backward} How to create the pairs. Forward: look at what comes after the center. Backward: look at what comes before the center. Required if `--convert` is given
+- `--randomize`: Randomizes the data if added
+- `--predict`: Predict data to analyze accuracy
+- `--probfile`: Path + name to formatted data file with sentences if if `--predict` is given
+
+## Convolutional Neural Network for predicting amino acids
+As originally described in the paper [4], the model has been implemented and can be run in a terminal by
+```console
+python main_cnn.py --train_file TRAIN_FILE  --valid_file VALID_FILE --in_channels IN_CHANNELS --out_channels OUT_CHANNELS --kernel_sizes KERNEL_SIZES --strides STRIDES --dim_embed DIM_EMBED --window WINDOW --direction  {before,after,both} --word2idx WORD2IDX 
+```
+
+The required arguments for this command are:
+- `--train_file`: Path+name to file with training data
+- `--valid_file`: Path+name to file with validation data
+- `--in_channel`: number of in channels
+- `--out_channels`: number of out channels
+- `--kernel_sizes`: sizes of kernels (list)
+- `--strides`: stride to use
+- `--dim_embed`: dimension of embedding layer (input size, dim_embed)
+- `--window`: size of window (n-gram)
+- `--direction`: {before,after,both} Direction of context (input) window.
+- `--word2idx`: word2idx file
+Optional arguments:
+- `--embedding_matrix`: file with previously trained embeddings
+- `--p_dropout`: dropout probability, default: 0.5
+- `--emb_train`: If given, embeddings of the network are also trained if previously trained embeddings are also given
+- `--batch_size`: Batch size
+- `--epochs`: Epochs to train network in
+- `--optimizer`: {SGD,Adam} Optmizer to use in training
+- `--learning_rate`: Learning rate for optimizer
+- `--evaluate`: Evaluate the network on the test set
+- `--test_file`: Path+name to file with test data if `--evaluate` is given
+- `--save`: Save the network every epoch
+- `--datadir`: Directory to save network backups if `--save` is given
+
 # References
 1. Mikolov T, Chen K, Corrado G, Dean J. Efficient Estimation of Word Representations in Vector Space. January 2013. http://arxiv.org/abs/1301.3781.
 2. Mikolov T, Sutskever I, Chen K, Corrado G, Dean J. Distributed Representations of Words and Phrases and their Compositionality. October 2013. http://arxiv.org/abs/1310.4546.
 3. Qi Y, Oja M, Weston J, Noble WS. A unified multitask architecture for predicting local protein properties. PLoS One. 2012;7(3). doi:10.1371/journal.pone.0032235.
+4. Y. Kim, “Convolutional Neural Networks for Sentence Classification,” Proc. 2014 Conf. Empir. Methods Nat. Lang. Process., pp. 1746–1751, 2014.
