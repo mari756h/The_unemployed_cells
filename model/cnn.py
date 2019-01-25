@@ -19,19 +19,19 @@ class TextCNN(nn.Module):
         number of classes
     p_dropout: float
         probability of dropout
-    in_channels: list
-        ..
-    out_channels: list
-        ..
+    in_channels: int
+        number of in channels
+    out_channels: int
+        number of out channels
     kernel_sizes: list
-        ..
-    strides:
-        ..
+        sizes of kernels (filter)
+    strides: int
+        what stride to use
 
     Methods
     ----------
     load_embeddings(matrix, non_trainable)
-        aa
+        load previously trained word embeddings
     forward(x)
         feed data through network
 

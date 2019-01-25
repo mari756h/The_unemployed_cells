@@ -1,5 +1,6 @@
 import argparse
 import sys
+import os
 import json
 import torch
 import torch.utils.data as data_utils
@@ -35,10 +36,14 @@ def parse_args():
     parser.add_argument('--epochs', type=int, default=10, help="Epochs to train network in")
     parser.add_argument('--optimizer', type=str, default='SGD', choices=['SGD', 'Adam'], help="Optmizer to use in training")
     parser.add_argument('--learning_rate', type=float, default=0.1, help="Learning rate for optimizer")
+    parser.add_argument('--evaluate', action='store_true', help="Evaluate the network on the test set")
+    parser.add_argument('--test_file', type=str, required='--evaluate' in sys.argv, help="Path+name to file with test data")
+    parser.add_argument('--save', action='store_true', help="Save the network every epoch")
+    parser.add_argument('--datadir', type=str, required='--save'in sys.argv, help="Directory to save network backups")
 
     return parser.parse_args()
 
-def train(train_iter, val_iter, model, epochs, optim_func, lr=0.1, cuda=False):
+def train(train_iter, val_iter, model, epochs, optim_func, lr=0.1, cuda=False, save=False, model_name=None, test_iter=None):
     
     if optim_func == 'SGD':
         optimizer = optim.SGD(model.parameters(), lr = lr)
@@ -52,7 +57,6 @@ def train(train_iter, val_iter, model, epochs, optim_func, lr=0.1, cuda=False):
     if cuda:
         print("Running on GPU")
         model.cuda()
-        optimizer.cuda()
     
     print("")
 
@@ -106,7 +110,41 @@ def train(train_iter, val_iter, model, epochs, optim_func, lr=0.1, cuda=False):
         print(" Training loss: {:.3f}, perplexity: {:.3f}, accuracy: {:.3f}".format(train_losses[-1], np.exp(train_losses[-1]), train_accs[-1]))
         print(" Validation loss: {:.3f}, perplexity: {:.3f}, accuracy: {:.3f}".format(valid_losses[-1], np.exp(valid_losses[-1]), valid_accs[-1]))
 
+        if save:
+            torch.save({'model_state_dict': net.state_dict(), 
+                        'optimizer_state_dict': optimizer.state_dict(), 
+                        'epoch': epoch + 1, 
+                        'train_loss': train_losses[-1], 
+                        'valid_loss': valid_losses[-1]}, 
+                        model_name.replace('*', str(epoch+1)))
+        
+        if test_iter is not None:
+            test_loss, test_acc = test(test_iter, model, cuda)
+
+
     return train_losses, train_accs, valid_losses, valid_accs
+
+def test(test_iter, model, cuda=False):
+    criterion = nn.CrossEntropyLoss()
+    model.eval()
+    running_loss, running_acc, running_length = 0, 0, 0
+    for inputs, labels in test_iter:
+        n_samples = inputs.shape[0]
+        if cuda:
+            inputs=inputs.cuda()
+            labels=labels.cuda()
+        output = model(inputs)
+        loss = criterion(output, labels)
+        running_loss += loss.item() * n_samples
+        running_acc += accuracy(y_true=labels, y_pred=output) * n_samples
+        running_length += n_samples
+    
+    running_loss /= running_length
+    running_acc /= running_length
+    
+    print(" Test loss: {:.3f}, perplexity: {:.3f}, accuracy: {:.3f}\n".format(running_loss, np.exp(running_loss), running_acc))
+
+    return running_loss, running_acc
 
 if __name__ == "__main__":
     args = parse_args()
@@ -136,6 +174,7 @@ if __name__ == "__main__":
     valid_data.make_context_pairs(window_size=args.window, direction=args.direction)
     valid_data.words_to_index(word2idx=word2idx)
 
+
     # convert to pytorch batch loader thingy
     train_tensor = data_utils.TensorDataset(torch.from_numpy(train_data.context_array[0]), torch.from_numpy(train_data.context_array[1]))
     load_train = data_utils.DataLoader(train_tensor, batch_size=args.batch_size, shuffle=True)
@@ -143,6 +182,18 @@ if __name__ == "__main__":
     valid_tensor = data_utils.TensorDataset(torch.from_numpy(valid_data.context_array[0]), torch.from_numpy(valid_data.context_array[1]))
     load_valid = data_utils.DataLoader(valid_tensor, batch_size=args.batch_size, shuffle=True)
 
+    if args.evaluate:
+        print("Loaded and formatted test data")
+        test_data = DataLoader()
+        test_data.load_corpus(path=args.test_file)
+        test_data.count_corpus()
+        test_data.make_context_pairs(window_size=args.window, direction=args.direction)
+        test_data.words_to_index(word2idx=word2idx)
+
+        test_tensor = data_utils.TensorDataset(torch.from_numpy(test_data.context_array[0]), torch.from_numpy(test_data.context_array[1]))
+        load_test = data_utils.DataLoader(test_tensor, batch_size=args.batch_size, shuffle=True)
+    else:
+        load_test = None
     # check if cuda is available
     use_cuda = torch.cuda.is_available()
 
@@ -161,14 +212,37 @@ if __name__ == "__main__":
 
     print("CNN for sentence classification:\n", net)
     # load in embedding matrix if given
+    emb_type = "new"
     if args.embedding_matrix is not None:
         if use_cuda:
             checkpoint = torch.load(args.embedding_matrix)
         else:
             checkpoint = torch.load(args.embedding_matrix, map_location='cpu')
-        print(checkpoint['model_state_dict']['in_embedding.weight'].shape)
-        print(checkpoint['model_state_dict']['in_embedding.weight'])
-        net.load_embeddings(matrix=checkpoint['model_state_dict']['in_embedding.weight'], trainable=args.emb_train)
-        print("Pretrained embeddings loaded")
 
-    train_losses, train_accs, valid_losses, valid_accs = train(load_train, load_valid, net, optim_func=args.optimizer, epochs=args.epochs, lr=args.learning_rate)
+        try:
+            net.load_embeddings(matrix=checkpoint['model_state_dict']['in_embedding.weight'], trainable=args.emb_train)
+            emb_type = "SG"
+        except:
+            net.load_embeddings(matrix=checkpoint['model_state_dict']['embeddings.weight'])
+            emb_type = "CBOW"
+        print("Pretrained embeddings loaded")
+    
+    # check if datadir exists, if not: make it!
+    if args.save and not os.path.exists(args.datadir):
+        os.makedirs(args.datadir)
+
+    model_name = "{0}/cnn_window{1}_emb{6}_epoch{2}_direction-{3}_opt-{4}_lr{5}_emb{7}_k{8}.pkl".format(args.datadir, 
+                                                                                    args.window,
+                                                                                    '*', 
+                                                                                    args.direction, 
+                                                                                    args.optimizer, 
+                                                                                    args.learning_rate,
+                                                                                    emb_type, 
+                                                                                    args.dim_embed,
+                                                                                    args.kernel_sizes)
+    train_losses, train_accs, valid_losses, valid_accs = train(
+        load_train, load_valid, net, 
+        optim_func=args.optimizer, epochs=args.epochs, 
+        lr=args.learning_rate, cuda=use_cuda,
+        save=args.save, model_name=model_name, test_iter=load_test)
+
